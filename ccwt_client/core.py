@@ -4,11 +4,10 @@
 # @Descript: 
 
 
-import os
-import sys
 import json
-import requests
+import os
 import tempfile
+
 import requests_cache
 
 
@@ -106,6 +105,7 @@ class CcwtClient(object):
         response = self.__request('/', params=kwargs)
         return response
 
+cli = CcwtClient()
 
 if __name__ == '__main__':
     params = {
@@ -113,6 +113,6 @@ if __name__ == '__main__':
         'end_date': '', 'time_frame': '1m', 'limit': '10'
     }
     cc = CcwtClient()
-    res = cc.order(**params)
+    res = cc.ticker(**params)
     print(type(res))
     print(res)
