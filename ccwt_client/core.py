@@ -108,11 +108,16 @@ class CcwtClient(object):
 cli = CcwtClient()
 
 if __name__ == '__main__':
+    # params = {
+    #     'exchange': "bitmex", 'symbol': 'XBTUSD', 'trade_date': '2018-09-18', 'start_date': '',
+    #     'end_date': '', 'time_frame': '1m', 'limit': '10'
+    # }
+    instrument = 'bitmex_XBTUSD'
     params = {
-        'exchange': "binance", 'symbol': 'ADABTC', 'trade_date': '2018-09-18', 'start_date': '',
-        'end_date': '', 'time_frame': '1m', 'limit': '10'
+        'exchange': instrument.split('_')[0], 'symbol': instrument.split('_')[-1], 'start_date': '',
+        'end_date': ''
     }
     cc = CcwtClient()
-    res = cc.ticker(**params)
+    res = cc.kline(**params)
     print(type(res))
     print(res)
