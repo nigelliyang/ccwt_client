@@ -37,7 +37,8 @@ setup(
 
     install_requires=[
         'requests>=2.18.4',
-        'requests_cache>=0.4.13'
+        'requests_cache>=0.4.13',
+        'pyalgotrade>=0.20'
     ],
 
     classifiers=[
