@@ -39,6 +39,7 @@ class Database(dbfeed.Database):
         # client获取数据
         col = get_data_info(instrument, period, ticker_flag, fromDateTime, toDateTime)
 
+        _tmp = []
         ret = []
         map = {}
         for row in col:
@@ -64,11 +65,16 @@ class Database(dbfeed.Database):
                         bar.BasicBar(dateTime, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
                                      row.get('close', 0), row[volume], None, frequency))
                     map[strDateTime] = '1'
+                    _tmp.extend(
+                        [dateTime, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
+                         row.get('close', 0), row[volume], None, frequency])
+
             except Exception as e:
                 print("异常: {}".format(e))
                 pass
 
         print("======ret is len: {}======".format(len(ret)))
+        print("=========_tmp: {}============".format(_tmp))
         return ret
 
     def get_time_stamp_info(self, time_stamp, timezone=''):
