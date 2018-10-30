@@ -1,9 +1,9 @@
-#Installation: 
+# Installation: 
 $ pip install ccwt_client
 
 #Ccwt_web:  ccwt_web接口的数据没有进行转换，直接从MongoDB读取；
-##Host: http://52.194.88.72:8002
-###Kline:  /api/kline 
+## Host: http: //52.194.88.72:8002
+### Kline:  /api/kline 
     参数：
         exchange: 交易所  str 
         symbol: 交易对，可以多个，以逗号分隔  str
@@ -55,7 +55,7 @@ $ pip install ccwt_client
     }
     ]
 
-##Ticker:  /api/ticker 
+## Ticker:  /api/ticker 
     参数：
         exchange: 交易所  str 
         symbol: 交易对，可以多个，以逗号分隔  str
@@ -178,7 +178,7 @@ $ pip install ccwt_client
         }
     ]
 
-###Depth:  /api/depth
+### Depth:  /api/depth
     参数：
         exchange: 交易所  str 
         symbol: 交易对，可以多个，以逗号分隔  str
@@ -363,7 +363,7 @@ $ pip install ccwt_client
     ]
 
 
-###Order:  /api/order
+### Order:  /api/order
     参数：
         exchange: 交易所  str 
         symbol: 交易对，可以多个，以逗号分隔  str
@@ -393,7 +393,7 @@ $ pip install ccwt_client
     ]
 
 
-###Trade:  /api/trade
+### Trade:  /api/trade
     参数：
         exchange: 交易所  str 
         symbol: 交易对，可以多个，以逗号分隔  str
@@ -424,10 +424,10 @@ $ pip install ccwt_client
     ]
 
 
-##Ccwt_client: ccwt_web客户端:
+## Ccwt_client: ccwt_web客户端:
     下载ccwt_client包：pip install ccwt_client，下载过的可进行更新 pip install ccwt_client -U
 
-###Ccwt_client.core.py
+### Ccwt_client.core.py
     Cli.tieker(**kwargs):
     from ccwt_client.core import cli
     params = {
@@ -437,7 +437,7 @@ $ pip install ccwt_client
     print(res)
     [{'bitmex_XBTUSD_ticker': [{'_id': '2018-10-23T08:20:16.103Z', 'symbol': 'XBTUSD', 'rootSymbol': 'XBT', 'state': 'Open', 'typ': 'FFWCSX', 'listing': '2016-05-13T12:00:00.000Z', 'front': '2016-05-13T12:00:00.000Z', 'expiry': None, 'settle': None, 'relistInterval': None, 'inverseLeg': '', 'sellLeg': '', 'buyLeg': '', 'optionStrikePcnt': None, 'optionStrikeRound': None, 'optionStrikePrice': None, 'optionMultiplier': None, 'positionCurrency': 'USD', 'underlying': 'XBT', 'quoteCurrency': 'USD', 'underlyingSymbol': 'XBT=', 'reference': 'BMEX', 'referenceSymbol': '.BXBT', 'calcInterval': None, 'publishInterval': None, 'publishTime': None, 'maxOrderQty': 10000000, 'maxPrice': 1000000, 'lotSize': 1, 'tickSize': 0.5, 'multiplier': -100000000, 'settlCurrency': 'XBt', 'underlyingToPositionMultiplier': None, 'underlyingToSettleMultiplier': -100000000, 'quoteToSettleMultiplier': None, 'isQuanto': False, 'isInverse': True, 'initMargin': 0.01, 'maintMargin': 0.005, 'riskLimit': 20000000000, 'riskStep': 10000000000, 'limit': None, 'capped': False, 'taxed': True, 'deleverage': True, 'makerFee': -0.00025, 'takerFee': 0.00075, 'settlementFee': 0, 'insuranceFee': 0, 'fundingBaseSymbol': '.XBTBON8H', 'fundingQuoteSymbol': '.USDBON8H', 'fundingPremiumSymbol': '.XBTUSDPI8H', 'fundingTimestamp': '2018-10-23T12:00:00.000Z', 'fundingInterval': '2000-01-01T08:00:00.000Z', 'fundingRate': 0.0001, 'indicativeFundingRate': 0.0001, 'rebalanceTimestamp': None, 'rebalanceInterval': None, 'openingTimestamp': '2018-10-23T08:00:00.000Z', 'closingTimestamp': '2018-10-23T09:00:00.000Z', 'sessionInterval': '2000-01-01T01:00:00.000Z', 'limitDownPrice': None, 'limitUpPrice': None, 'bankruptLimitDownPrice': None, 'bankruptLimitUpPrice': None, 'prevTotalVolume': 866877370056, 'totalVolume': 866879525586, 'volume24h': 584437921, 'prevTotalTurnover': 11862857877788048, 'totalTurnover': 11862891578522378, 'turnover': 33700734329, 'turnover24h': 9131853536643, 'homeNotional24h': 91318.53536643005, 'foreignNotional24h': 584437921, 'prevPrice24h': 6403, 'vwap': 6400, 'lastPriceProtected': 6396.3157, 'lastTickDirection': 'ZeroPlusTick', 'lastChangePcnt': -0.001, 'midPrice': 6396.25, 'impactBidPrice': 6395.9066, 'impactMidPrice': 6396, 'impactAskPrice': 6396.3157, 'hasLiquidity': True, 'openInterest': 763308087, 'openValue': 11930505399810, 'fairMethod': 'FundingRate', 'fairBasisRate': 0.1095, 'fairBasis': 0.29, 'fairPrice': 6397.95, 'markMethod': 'FairPrice', 'markPrice': 6397.95, 'indicativeTaxRate': 0, 'indicativeSettlePrice': 6397.66, 'optionUnderlyingPrice': None, 'settledPrice': None, 'timestamp': '2018-10-23T08:20:16.103Z', 'high': 6423, 'low': 6369, 'close': 6396.5, 'preclose': 6399.85, 'bid': 6396, 'ask': 6396.5, 'base_volume': 2155330, 'sys_time': '2018-10-23 16:20:19', 'date': '20181023', 'volume': 2155530}], 'cached': False}]
 
-###Cli.kline(**kwargs):
+### Cli.kline(**kwargs):
 
     from ccwt_client.core import cli
     params = {
@@ -448,7 +448,7 @@ $ pip install ccwt_client
     [{'bitmex_XBTUSD_kline_1m': [{'_id': '1540369140.0', 'close': 6437.5, 'open': 6438.0, 'count': 13, 'turnover': 776697187, 'sys_time': '2018-10-24 08:19:15', 'time_stamp': '2018-10-24T08:19:00', 'low': 6437.5, 'date': 20181024, 'foreign_notional': None, 'high': 6438.0, 'last_size': 556, 'exchange_time': '2018-10-24 08:19:00.000000', 'volume': 50003.0, 'vwap': 6437.9064, 'home_notional': None}], 'cached': False}]
 
 
-###Cli.depth(**kwargs):
+### Cli.depth(**kwargs):
     from ccwt_client.core import cli
     params = {
             'exchange': 'binance', 'symbol': 'ZILBTC', 'limit': '1'
@@ -457,7 +457,7 @@ $ pip install ccwt_client
     print(res)
     [{'binance_ZILBTC_depth': [{'_id': '53744627', 'last_ID': 53744627, 'bids': [[4.97e-06, 4.97e-06], [4.95e-06, 4.95e-06], [4.94e-06, 4.94e-06], [4.93e-06, 4.93e-06], [4.92e-06, 4.92e-06], [4.91e-06, 4.91e-06], [4.9e-06, 4.9e-06], [4.89e-06, 4.89e-06], [4.88e-06, 4.88e-06], [4.87e-06, 4.87e-06], [4.86e-06, 4.86e-06], [4.85e-06, 4.85e-06], [4.84e-06, 4.84e-06], [4.83e-06, 4.83e-06], [4.82e-06, 4.82e-06], [4.81e-06, 4.81e-06], [4.8e-06, 4.8e-06], [4.79e-06, 4.79e-06], [4.78e-06, 4.78e-06], [4.77e-06, 4.77e-06]], 'asks': [[4.98e-06, 4.98e-06], [4.99e-06, 4.99e-06], [5e-06, 5e-06], [5.01e-06, 5.01e-06], [5.02e-06, 5.02e-06], [5.03e-06, 5.03e-06], [5.04e-06, 5.04e-06], [5.05e-06, 5.05e-06], [5.06e-06, 5.06e-06], [5.07e-06, 5.07e-06], [5.08e-06, 5.08e-06], [5.09e-06, 5.09e-06], [5.1e-06, 5.1e-06], [5.11e-06, 5.11e-06], [5.12e-06, 5.12e-06], [5.13e-06, 5.13e-06], [5.14e-06, 5.14e-06], [5.15e-06, 5.15e-06], [5.16e-06, 5.16e-06], [5.17e-06, 5.17e-06]], 'date': '20180918', 'sys_time': '2018-09-18 09:09:44'}], 'cached': False}]
 
-###Cli.order(**kwargs):
+### Cli.order(**kwargs):
     from ccwt_client.core import cli
     params = {
             'exchange': 'binance', 'symbol': 'ZILBTC', 'limit': '1'
@@ -466,7 +466,7 @@ $ pip install ccwt_client
     print(res)
     [{'binance_ZILBTC_order': [{'_id': '1537232981739', 'time_stamp': 1537232981739, 'first_ID': '53744625', 'last_ID': '53744625', 'bids': [[4.91e-06, 4.91e-06]], 'asks': [], 'exchange_time': '2018-09-18 01:09:41.000000', 'date': '20180918', 'sys_time': '2018-09-18 09:09:42'}], 'cached': False}]
 
-###Cli.trade(**kwargs):
+### Cli.trade(**kwargs):
     from ccwt_client.core import cli
     params = {
             'exchange': 'binance', 'symbol': 'ZILBTC', 'limit': '1'
@@ -476,7 +476,7 @@ $ pip install ccwt_client
     [{'binance_ZILBTC_trade': [{'_id': '5014013', 'time_stamp': 1537232986458, 'order': 'null', 'type': 'null', 'side': 'buy', 'taker_or_maker': 'null', 'price': 4.98e-06, 'amount': 4254.0, 'cost': 0.02118492, 'fee_cost': 0.0, 'fee_currency': 'null', 'fee_rate': 0.0, 'exchange_time': '2018-09-18 01:09:46.000000', 'date': '20180918', 'sys_time': '2018-09-18 09:09:46'}], 'cached': False}]
 
 
-##Ccwt_client.core_feed.py:
+## Ccwt_client.core_feed.py:
     数据格式支持pyalgotrade框架
     feed = Feed(bar.Frequency.SECOND)
     “””
