@@ -65,7 +65,7 @@ class Database(dbfeed.Database):
                         bar.BasicBar(dateTime, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
                                      row.get('close', 0), row[volume], None, frequency))
                     map[strDateTime] = '1'
-                    _tmp.extend(
+                    _tmp.append(
                         [dateTime, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
                          row.get('close', 0), row[volume], None, frequency])
 
