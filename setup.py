@@ -28,7 +28,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='ccwt_client',
     packages=['ccwt_client', 'strategy'],
-    version='0.2',
+    version='0.3',
     description='ccwt server client',
     url='https://github.com/xycfree/ccwt_client',
     author='xycfree',
@@ -39,8 +39,6 @@ setup(
         'requests>=2.18.4',
         'requests_cache>=0.4.13',
         'pyalgotrade>=0.20',
-        'requests',
-        'requests_cache',
     ],
 
     classifiers=[

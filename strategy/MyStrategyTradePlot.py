@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # 获得回测数据
     feed = Feed(Frequency.MINUTE)
     #feed.loadBars('okex_LIGHTUSDT')
-    feed.loadBars('bitmex_BCHZ18')
+    # feed.loadBars('bitmex_BCHZ18')
     feed.loadBars('binance_TRXBTC')
 
     # 4.设置指标和绘图

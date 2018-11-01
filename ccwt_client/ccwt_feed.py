@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 # @Date    : 2018/10/27 17:18    @Author  : xycfree
 # @Descript: 
-
+import logger
 import datetime
 from ccwt_client.core import cli
 from pyalgotrade.barfeed import membf, Frequency
-
 from pyalgotrade.barfeed import dbfeed
 from pyalgotrade.barfeed import membf
 from pyalgotrade import bar
 from pyalgotrade.utils import dt
 
+log = logger.getLogger("ccwt_feed")
 
 def normalize_instrument(instrument):
     return instrument.upper()
@@ -45,10 +45,10 @@ class Database(dbfeed.Database):
         for row in col:
 
             _time_stamp = row.get('time_stamp', '') or row.get('timestamp', '')
-            print("==========_time_stamp: {}==========".format(_time_stamp))
+            log.info("==========_time_stamp: {}==========".format(_time_stamp))
             dateTime, strDateTime = self.get_time_stamp_info(_time_stamp, timezone)
 
-            print('dateTime: {}, strDateTime: {}'.format(dateTime, strDateTime))
+            log.info('dateTime: {}, strDateTime: {}'.format(dateTime, strDateTime))
             # try:
             #     dateTime = dt.timestamp_to_datetime(row['time_stamp'] // 1000)
             #     if timezone:
@@ -70,11 +70,11 @@ class Database(dbfeed.Database):
                          row.get('close', 0), row[volume], None, frequency])
 
             except Exception as e:
-                print("异常: {}".format(e))
+                log.warning("异常: {}".format(e))
                 pass
 
-        print("======ret is len: {}======".format(len(ret)))
-        print("=========_tmp: {}============".format(_tmp))
+        log.debug("======ret is len: {}======".format(len(ret)))
+        log.debug("=========_tmp: {}============".format(_tmp))
         return ret
 
     def get_time_stamp_info(self, time_stamp, timezone=''):
@@ -88,7 +88,7 @@ class Database(dbfeed.Database):
                 dateTime = dt.localize(dateTime, timezone)
             strDateTime = dateTime.strftime("%Y-%m-%d %H:%M:%S")
         except Exception as e:
-            print("时间戳转换失败: {}".format(e))
+            log.debug("时间戳转换失败: {}".format(e))
             try:
                 dateTime = datetime.datetime.strptime(time_stamp, "%Y-%m-%dT%H:%M:%S")
             except:

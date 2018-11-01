@@ -7,9 +7,10 @@
 import json
 import os
 import tempfile
-
 import requests_cache
+import logger
 
+log = logger.getLogger("core")
 
 class CcwtClient(object):
     _session = None
@@ -29,7 +30,7 @@ class CcwtClient(object):
         if not self._session:
             self._session = requests_cache.core.CachedSession(
                 cache_name=self.cache_name, backend='sqlite',
-                expire_after=120)
+                expire_after=60*5)
 
             self._session.headers.update({'Content-Type': 'application/json'})
             self._session.headers.update(
