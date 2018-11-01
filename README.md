@@ -1,6 +1,10 @@
 # Installation: 
 $ pip install ccwt_client
 
+python setup.py sdist build
+twine upload dist/*
+
+
 #Ccwt_web:  ccwt_web接口的数据没有进行转换，直接从MongoDB读取；
 ## Host: http: //52.194.88.72:8002
 ### Kline:  /api/kline 
