@@ -8,7 +8,7 @@ import json
 import os
 import tempfile
 import requests_cache
-import logger
+from ccwt_client import logger
 
 log = logger.getLogger("core")
 

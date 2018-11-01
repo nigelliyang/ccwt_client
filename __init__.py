@@ -4,4 +4,4 @@
 # @Descript: 
 
 name = "ccwt_client"
-__version__ = "0.3"
+__version__ = "0.4"

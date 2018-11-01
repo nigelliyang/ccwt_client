@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 # @Date    : 2018/10/27 17:18    @Author  : xycfree
 # @Descript: 
-import logger
+from ccwt_client import logger
 import datetime
 from ccwt_client.core import cli
-from pyalgotrade.barfeed import membf, Frequency
 from pyalgotrade.barfeed import dbfeed
 from pyalgotrade.barfeed import membf
 from pyalgotrade import bar

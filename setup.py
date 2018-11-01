@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Date    : 2018/10/27 14:59    @Author  : xycfree
-# @Descript: 
-
+# @Descript:
 
 from os import path
 
@@ -28,9 +27,10 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='ccwt_client',
     packages=['ccwt_client', 'strategy'],
-    version='0.3',
+    version='0.4',
     description='ccwt server client',
-    url='https://github.com/xycfree/ccwt_client',
+    url='https://github.com/nigelliyang/ccwt_client',
+    # url='https://github.com/xycfree/ccwt_client',
     author='xycfree',
     author_email='xycfree@163.com',
     license='Apache v2.0 License',
