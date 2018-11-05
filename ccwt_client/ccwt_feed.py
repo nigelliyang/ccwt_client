@@ -149,7 +149,7 @@ def get_data_info(instrument, period='', ticker_flag=False, fromDateTime='', toD
     if res and isinstance(res, list):
         _keys = [k for k in res[0].keys() if _method in k]
         datas = res[0].get(_keys[0])
-        print('get data info is datas: {}'.format(datas[:3]))
+        log.info('get data info is datas: {}'.format(datas[:3]))
         return datas
     else:
         raise NotImplementedError()
