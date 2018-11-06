@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Date    : 2018/11/5 23:13 By xycfree
-# @Descript:
+# @Descript: 双均线策略
 
 from ccwt_client.ccwt_feed import Feed
 from pyalgotrade.broker.fillstrategy import DefaultStrategy
