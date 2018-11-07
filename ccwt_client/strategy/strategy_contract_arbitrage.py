@@ -74,7 +74,7 @@ def testStrategy():
     #############################################path set ############################33
 
     feed = Feed(frequency)
-    feed.loadBars('bitmex_BCHZ18')
+    feed.loadBars('bitmex_BCHZ18', test_back=True)
 
     strat = strat(feed, "bitmex_BCHZ18", *paras)
 

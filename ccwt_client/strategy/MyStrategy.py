@@ -20,7 +20,7 @@ if __name__ == '__main__':
     feed = Feed(Frequency.MINUTE)
     #feed.loadBars('okex_LIGHTUSDT')
     #feed.loadBars('binance_TRXBTC')
-    feed.loadBars('bitmex_XBTUSD')
+    feed.loadBars('bitmex_XBTUSD', test_back=True)
 
     # 把策略跑起来
     #myStrategy = MyStrategy(feed, "okex_LIGHTUSDT")

@@ -35,6 +35,8 @@ class MyStrategy(strategy.BacktestingStrategy):
         self.__position.exitMarket()
 
     def onBars(self, bars):  # 每一个数据都会抵达这里，
+        print('====================')
+        print(bars)
         # SMA的计算存在窗口，所以前面的几个bar下是没有SMA的数据的.
         if self.__sma[-1] is None:
             return
@@ -54,7 +56,7 @@ if __name__ == '__main__':
     # 获得回测数据
     feed = Feed(Frequency.MINUTE)
     #feed.loadBars('okex_LIGHTUSDT')
-    feed.loadBars('bitmex_LTCZ18')
+    feed.loadBars('bitmex_LTCZ18', test_back=True)
 
     # 把策略跑起来
     #myStrategy = MyStrategy(feed, "okex_LIGHTUSDT")

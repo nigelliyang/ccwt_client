@@ -62,7 +62,7 @@ if __name__ == '__main__':
     feed = Feed(Frequency.MINUTE)
     #feed.loadBars('okex_LIGHTUSDT')
     # feed.loadBars('bitmex_BCHZ18')
-    feed.loadBars('binance_TRXBTC')
+    feed.loadBars('binance_TRXBTC', test_back=True)
 
     # 4.设置指标和绘图
     # 把策略跑起来

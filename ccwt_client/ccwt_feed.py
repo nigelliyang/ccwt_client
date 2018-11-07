@@ -48,16 +48,17 @@ class Database(dbfeed.Database):
             # dateTime, strDateTime = self.get_time_stamp_info(_time_stamp, timezone)
 
             # log.info('dateTime: {}, strDateTime: {}'.format(dateTime, strDateTime))
-            dateTime = row.get('sys_time')
+            str_date_time = row.get('sys_time')
+            date_time = datetime.datetime.strptime(str_date_time, '%Y-%m-%d %H:%M:%S')
             try:
-                if dateTime not in map:
+                if str_date_time not in map:
                     # print("open: {}, preclose: {}".format(row.get('open', 0), row.get('preclose', 0)))
                     ret.append(
-                        bar.BasicBar(dateTime, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
+                        bar.BasicBar(date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
                                      row.get('close', 0), row[volume], None, frequency))
-                    map[dateTime] = '1'
+                    map[str_date_time] = '1'
                     _tmp.append(
-                            [dateTime, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
+                            [date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
                              row.get('close', 0), row[volume], None, frequency])
             except Exception as e:
                 log.warning("异常: {}".format(e))
@@ -156,7 +157,7 @@ class Feed(membf.BarFeed):
     def loadBars(self, instrument, test_back, timezone='', start_date='', end_date=''):
         """  获取交易所ticker/kline数据
         :param instrument:
-        :param test_back: 回测标识，TRUE: 表示回测，默认返回1000条数据， False: 获取时间段区间数据
+        :param test_back: 回测标识，True: 表示回测，默认返回1000条数据， False: 获取时间段区间数据
         :param timezone: 时区
         :param start_date: 开始日期 与系统时间相比，不与交易所时间比较
         :param end_date: 截止日期 与系统时间相比，不与交易所时间比较
@@ -164,13 +165,12 @@ class Feed(membf.BarFeed):
         """
         if not test_back:
             if not start_date and not end_date:
-                raise
+                raise NotImplementedError('test_back is False, start_date and end_date not is empty!')
         log.info("instrument: {}.".format(instrument))
         bars = self.db.getBars(instrument, self.getFrequency(), test_back,  timezone, start_date, end_date)
         self.addBarsFromSequence(instrument, bars)
 
-
 if __name__ == '__main__':
     feed = Feed(bar.Frequency.SECOND)
     # feed.loadBars("bitmex_LTCZ18")  # bitmex_XBTUSD  binance_ADABTC  okex_LIGHTBTC
-    feed.loadBars("okex_LIGHTBTC")  # bitmex_XBTUSD  binance_ADABTC  okex_LIGHTBTC
+    feed.loadBars("okex_LIGHTBTC", test_back=True)  # bitmex_XBTUSD  binance_ADABTC  okex_LIGHTBTC
