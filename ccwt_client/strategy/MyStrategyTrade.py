@@ -54,10 +54,10 @@ if __name__ == '__main__':
     # 获得回测数据
     feed = Feed(Frequency.MINUTE)
     #feed.loadBars('okex_LIGHTUSDT')
-    feed.loadBars('binance_TRXBTC')
+    feed.loadBars('bitmex_LTCZ18')
 
     # 把策略跑起来
     #myStrategy = MyStrategy(feed, "okex_LIGHTUSDT")
-    myStrategy = MyStrategy(feed, "binance_TRXBTC")
+    myStrategy = MyStrategy(feed, "bitmex_LTCZ18")
     myStrategy.run()
     myStrategy.info("Final portfolio value: $%.10f" % myStrategy.getResult())

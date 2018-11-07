@@ -4,7 +4,7 @@
 # @Descript:
 
 from pyalgotrade.bar import Frequency
-from strategy.MyStrategy import Feed,  MyStrategy
+from ccwt_client.strategy.MyStrategy import Feed,  MyStrategy
 def run_my_strategy():
     feed = Feed(Frequency.MINUTE)
     feed.loadBars("bitmex_XBTUSD")
