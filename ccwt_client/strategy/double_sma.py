@@ -39,7 +39,8 @@ class MyStrategy(strategy.BacktestingStrategy):
         # self.__instrument_1 = instrument_1
 
     def onBars(self, bars):  # 每一个数据都会抵达这里，
-        self.info(bars[0])
+        # self.info(bars.getBar('okex_LIGHTBTC'))
+        self.info(bars.getInstruments())
 
         # SMA的计算存在窗口，所以前面的几个bar下是没有SMA的数据的.
         # if self.__sma[-1] is None:

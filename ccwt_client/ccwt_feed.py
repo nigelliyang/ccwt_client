@@ -166,7 +166,7 @@ class Feed(membf.BarFeed):
         if not test_back:
             if not start_date and not end_date:
                 raise NotImplementedError('test_back is False, start_date and end_date not is empty!')
-        log.info("instrument: {}.".format(instrument))
+        # log.info("instrument: {}.".format(instrument))
         bars = self.db.getBars(instrument, self.getFrequency(), test_back,  timezone, start_date, end_date)
         self.addBarsFromSequence(instrument, bars)
 
