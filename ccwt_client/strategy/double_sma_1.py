@@ -15,20 +15,33 @@ from pyalgotrade.technical import rsi
 
 # 构建一个策略
 class MyStrategy(strategy.BacktestingStrategy):
-    def __init__(self, feed, *args):
+    _instrument = ''
+    def __init__(self, feed):
         super(MyStrategy, self).__init__(feed)
-        # self.setUseAdjustedValues(True)
-        orders = list(*args)
-        for instrument in orders:
-            self.__rsi = rsi.RSI(feed[instrument].getCloseDataSeries(), 14)
-            self.__sma_rsi = ma.SMA(self.__rsi, 15)
-            self.__sma = ma.SMA(feed[instrument].getCloseDataSeries(), 2)
-            self.__position = None
-            self.__instrument = instrument
-            # self.marketOrder(instrument, 100, onClose=False, allOrNone=False)
+        self.__position = None
+        # self.__sma = ma.SMA(feed[instrument].getCloseDataSeries(), 15)
+        # self.__instrument = instrument
+        self.getBroker()
+
+    def onEnterOk(self, position):
+        execInfo = position.getEntryOrder().getExecutionInfo()
+        self.info("BUY at %.10f" % (execInfo.getPrice()))
+
+    def onEnterCanceled(self, position):
+        self.__position = None
+
+    def onExitOk(self, position):
+        execInfo = position.getExitOrder().getExecutionInfo()
+        self.info("SELL at $%.10f" % (execInfo.getPrice()))
+        self.__position = None
+
+    def onExitCanceled(self, position):
+        # If the exit was canceled, re-submit it.
+        self.__position.exitMarket()
+
 
     def onBars(self, bars):  # 每一个数据都会抵达这里，
-
+        self.info('double sma 1 onBars bar: {}'.format(bars.getInstruments()))
         # SMA的计算存在窗口，所以前面的几个bar下是没有SMA的数据的.
         if self.__sma[-1] is None:
             return
@@ -50,7 +63,7 @@ if __name__ == '__main__':
 
     feed.loadBars('bitmex_LTCZ18', test_back=True)
     feed.loadBars('okex_LIGHTBTC', test_back=True)
-    myStrategy = MyStrategy(feed)
+    myStrategy = MyStrategy(feed)  # , ('bitmex_LTCZ18', "okex_LIGHTBTC")
     retAnalyzer = returns.Returns()
     myStrategy.attachAnalyzer(retAnalyzer)
     sharpRatioAnalyzer = sharpe.SharpeRatio()

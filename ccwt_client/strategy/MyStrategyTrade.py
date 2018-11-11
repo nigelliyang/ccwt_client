@@ -14,9 +14,9 @@ class MyStrategy(strategy.BacktestingStrategy):
     def __init__(self, feed, instrument):
         super(MyStrategy, self).__init__(feed)
         self.__position = None
-        self.__sma = ma.SMA(feed[instrument].getCloseDataSeries(), 150)
+        self.__sma = ma.SMA(feed[instrument].getCloseDataSeries(), 15)
         self.__instrument = instrument
-        #self.getBroker()
+        self.getBroker()
 
     def onEnterOk(self, position):
         execInfo = position.getEntryOrder().getExecutionInfo()
@@ -35,8 +35,6 @@ class MyStrategy(strategy.BacktestingStrategy):
         self.__position.exitMarket()
 
     def onBars(self, bars):  # 每一个数据都会抵达这里，
-        print('====================')
-        print(bars)
         # SMA的计算存在窗口，所以前面的几个bar下是没有SMA的数据的.
         if self.__sma[-1] is None:
             return
@@ -54,12 +52,12 @@ class MyStrategy(strategy.BacktestingStrategy):
 
 if __name__ == '__main__':
     # 获得回测数据
-    feed = Feed(Frequency.MINUTE)
-    #feed.loadBars('okex_LIGHTUSDT')
+    feed = Feed(Frequency.SECOND)
+    # feed.loadBars('okex_LIGHTUSDT', test_back=True)
     feed.loadBars('bitmex_LTCZ18', test_back=True)
 
     # 把策略跑起来
-    #myStrategy = MyStrategy(feed, "okex_LIGHTUSDT")
+    # myStrategy = MyStrategy(feed, "okex_LIGHTUSDT")
     myStrategy = MyStrategy(feed, "bitmex_LTCZ18")
     myStrategy.run()
     myStrategy.info("Final portfolio value: $%.10f" % myStrategy.getResult())
