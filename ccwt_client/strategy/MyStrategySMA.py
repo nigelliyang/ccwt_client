@@ -16,6 +16,8 @@ class MyStrategy(strategy.BacktestingStrategy):
         self.__rsi = rsi.RSI(feed[instrument].getCloseDataSeries(), 14)
         self.__sma_rsi = ma.SMA(self.__rsi, 15)
         self.__sma = ma.SMA(feed[instrument].getCloseDataSeries(), 2)
+        self.info("__sma: {}, {}.".format(self.__sma, self.__sma[-1]))
+
         self.__instrument = instrument
 
 
