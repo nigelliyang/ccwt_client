@@ -34,7 +34,7 @@ class Database(dbfeed.Database):
         """
         period, ticker_flag = self.get_frequency_info(frequency)
         volume = 'base_volume' if ticker_flag else 'volume'
-        limit = 100 if test_back else ''
+        limit = 1000 if test_back else ''
         # client获取数据
         col = get_data_info(instrument, period, ticker_flag, start_date, end_data, limit)
 
@@ -123,9 +123,14 @@ def get_data_info(instrument, period='', ticker_flag=False, start_date='', end_d
     """
 
     param = {
-        'exchange': instrument.split('_')[0], 'symbol': instrument.split('_')[-1], 'start_date': start_date,
-        'end_date': end_date, 'limit': limit
+        'exchange': instrument.split('_')[0], 'symbol': instrument.split('_')[-1],
+        # 'start_date': start_date, 'end_date': end_date, 'limit': limit
     }
+    if limit:
+        param['limit'] = limit
+    else:
+        param['start_date'] = start_date
+        param['end_date'] = end_date
 
     if period:
         _method = 'kline'
