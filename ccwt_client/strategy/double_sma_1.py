@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # @Date    : 2018/11/6 22:44 By xycfree
 # @Descript:
-
 from pyalgotrade import strategy
 from pyalgotrade.bar import Frequency
 from pyalgotrade.barfeed.csvfeed import GenericBarFeed
