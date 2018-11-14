@@ -26,7 +26,7 @@ class MarketTiming(strategy.BacktestingStrategy):
         for assetClass in instrumentsByClass:
             for instrument in instrumentsByClass[assetClass]:
                 priceDS = feed[instrument].getPriceDataSeries()
-                self.__sma[instrument] = ma.SMA(priceDS, 200)
+                self.__sma[instrument] = ma.SMA(priceDS, 15)
 
     def _shouldRebalance(self, dateTime):
         return dateTime.month != self.__rebalanceMonth
@@ -137,22 +137,23 @@ class MarketTiming(strategy.BacktestingStrategy):
 def main(plot):
     initialCash = 10000
     instrumentsByClass = {
-        "US Stocks": ["VTI"],
-        "Foreign Stocks": ["VEU"],
-        "US 10 Year Government Bonds": ["IEF"],
-        "Real Estate": ["VNQ"],
-        "Commodities": ["DBC"],
+        # "bitmex_LTCZ18": ["bitmex_LTCZ18"],
+        "okex_LIGHTBTC": ["okex_LIGHTBTC"],
+        "binance_ADABTC": ["binance_ADABTC"],
+
     }
 
     # Download the bars.
-    instruments = ["SPY"]
+    instruments = []
     for assetClass in instrumentsByClass:
         instruments.extend(instrumentsByClass[assetClass])
     # feed = yahoofinance.build_feed(instruments, 2007, 2013, "data", skipErrors=True)
 
     instrument = "bitmex_LTCZ18"
-    feed = Feed(Frequency.SECOND)
-    feed.loadBars(instrument, test_back=True)
+    feed = Feed(Frequency.MINUTE)
+    # feed.loadBars(instrument, test_back=True)
+    feed.loadBars('okex_LIGHTBTC', test_back=True)
+    feed.loadBars("binance_ADABTC", test_back=True)
 
 
 
@@ -166,7 +167,7 @@ def main(plot):
         plt = plotter.StrategyPlotter(strat, False, False, True)
         plt.getOrCreateSubplot("cash").addCallback("Cash", lambda x: strat.getBroker().getCash())
         # Plot strategy vs. SPY cumulative returns.
-        plt.getOrCreateSubplot("returns").addDataSeries("SPY", cumret.CumulativeReturn(feed["SPY"].getPriceDataSeries()))
+        # plt.getOrCreateSubplot("returns").addDataSeries("SPY", cumret.CumulativeReturn(feed["SPY"].getPriceDataSeries()))
         plt.getOrCreateSubplot("returns").addDataSeries("Strategy", returnsAnalyzer.getCumulativeReturns())
 
     strat.run()
