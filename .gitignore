@@ -112,5 +112,6 @@ venv.bak/
 *.log
 *.log.*
 key.txt
+keys.py
 api_keys.py
 datas.py
