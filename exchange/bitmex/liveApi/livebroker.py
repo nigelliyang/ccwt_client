@@ -20,12 +20,14 @@
 
 import threading
 import time
-import Queue
-
+try:
+    import Queue
+except:
+    from queue import Queue
 from pyalgotrade import broker
 from pyalgotrade.bitstamp import common
-from liveApi import liveUtils
-from liveApi import liveLogger
+from exchange.bitmex.liveApi import liveUtils
+from exchange.bitmex.liveApi import liveLogger
 
 logger = liveLogger.getLiveLogger("Broker")
 
@@ -60,8 +62,8 @@ class TradeMonitor(threading.Thread):
     def __init__(self, httpClient):
         super(TradeMonitor, self).__init__()
         self.__httpClient = httpClient
-        self.__queue = Queue.Queue()
-        self.__queueOrder = Queue.Queue()
+        self.__queue = Queue()
+        self.__queueOrder = Queue()
         self.__ordersId = []
         self.__stop = False
         logger.info("POLL_FREQUENCY is %d"%TradeMonitor.POLL_FREQUENCY)

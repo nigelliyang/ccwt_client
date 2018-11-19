@@ -47,18 +47,18 @@ class DoubleMA(strategy.BacktestingStrategy):
     def onBars(self, bars):
         # If a position was not opened, check if we should enter a long position.
 
-        if self.__ma2[-1] is None:
+        if self.__ma2[-1] is None:  # 过滤短线数据
             return
 
-        if self.__position is not None:
-            if not self.__position.exitActive() and cross.cross_below(self.__ma1, self.__ma2) > 0:
-                self.__position.exitMarket()
+        if self.__position is not None:  # 平仓
+            if not self.__position.exitActive() and cross.cross_below(self.__ma1, self.__ma2) > 0:   # 无挂单， 且较短的线下穿较长的线
+                self.__position.exitMarket()  # 平仓
                 # self.info("sell %s" % (bars.getDateTime()))
 
-        if self.__position is None:
-            if cross.cross_above(self.__ma1, self.__ma2) > 0:
-                shares = int(self.getBroker().getEquity() * 0.2 / bars[self.__instrument].getPrice())
-                self.__position = self.enterLong(self.__instrument, shares)
+        if self.__position is None:   # 策略持仓为空  # 开仓
+            if cross.cross_above(self.__ma1, self.__ma2) > 0:  # 短均线上穿长均线
+                shares = int(self.getBroker().getEquity() * 0.2 / bars[self.__instrument].getPrice())   # 投资组合价值*0.2 / 当前股票价格
+                self.__position = self.enterLong(self.__instrument, shares)  # 开仓
                 print(bars[self.__instrument].getDateTime(), bars[self.__instrument].getPrice())
                 # self.info("buy %s" % (bars.getDateTime()))
 

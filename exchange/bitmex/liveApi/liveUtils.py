@@ -10,7 +10,7 @@ def timestamp():
     return int(time.time())
 
 
-def utcnow():
+def utcnow():  # 世界时间
     return dt.as_utc(datetime.utcnow())
 
 
@@ -40,7 +40,7 @@ def CoinRound(coin):
 
 
 import traceback
-from liveApi import liveError
+from exchange.bitmex.liveApi import liveError
 
 
 def tryForever(func):

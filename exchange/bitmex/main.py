@@ -5,21 +5,18 @@ from pyalgotrade.technical import ma
 from pyalgotrade.technical import cross
 # from pyalgotrade import plotter
 from pyalgotrade.stratanalyzer import returns
-from liveApi.livebarfeed import LiveFeed
-from liveApi.livebroker import LiveBroker
-from liveApi import liveLogger
+from exchange.bitmex.liveApi.livebarfeed import LiveFeed
+from exchange.bitmex.liveApi.livebroker import LiveBroker
+from exchange.bitmex.liveApi import liveLogger
 
-from hbClient import hbTradeClient as hbClient
-from hbClient import hbCoinType
+from exchange.bitmex.bitmex_client import BitmexTradeClient as BitmexClient
+from exchange.bitmex.bitmex_client import BitmexCoinType
 
 logger = liveLogger.getLiveLogger("MyStrategy")
 
-COIN_TYPE = hbCoinType('ltc', 'usdt')
+COIN_TYPE = BitmexCoinType('btc', 'usdt')
 K_PERIOD = 60
 REQ_DELAY = 0
-
-
-# COIN_TYPE='ltc'
 
 class MyStrategy(strategy.BaseStrategy):
     def __init__(self, feed, instrument, brk):
@@ -68,8 +65,8 @@ class MyStrategy(strategy.BaseStrategy):
         # If a position was not opened, check if we should enter a long position.
         if self.__position is None:
             if cross.cross_above(self.__sma[10], self.__sma[30]) > 0:
-                mbroker = self.getBroker();
-                shares = mbroker.getCash() / bar.getPrice() * 0.9;
+                mbroker = self.getBroker()
+                shares = mbroker.getCash() / bar.getPrice() * 0.9
                 self.__position = self.enterLongLimit(self.__instrument, bar.getPrice(), shares, True)
         # Check if we have to exit the position.
         elif not self.__position.exitActive() and cross.cross_below(self.__sma[10], self.__sma[30]) > 0:
@@ -79,7 +76,7 @@ class MyStrategy(strategy.BaseStrategy):
 def run_strategy():
     logger.info("-------START-------")
     feed = LiveFeed([COIN_TYPE], Frequency.MINUTE * K_PERIOD, REQ_DELAY)
-    liveBroker = LiveBroker(COIN_TYPE, hbClient(COIN_TYPE))
+    liveBroker = LiveBroker(COIN_TYPE, BitmexClient(COIN_TYPE))
     myStrategy = MyStrategy(feed, COIN_TYPE, liveBroker)
     myStrategy.run()
 

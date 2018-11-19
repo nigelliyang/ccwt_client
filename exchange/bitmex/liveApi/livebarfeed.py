@@ -18,20 +18,23 @@
 .. moduleauthor:: Gabriel Martin Becedillas Ruiz <gabriel.becedillas@gmail.com>
 """
 
-import time
 import datetime
 import threading
-import Queue
+import time
+try:
+    import Queue
+except:
+    from queue import Queue
 
 from pyalgotrade import bar
 from pyalgotrade import barfeed
 from pyalgotrade import dataseries
 from pyalgotrade import resamplebase
 from pyalgotrade.utils import dt
-import liveApi.commonApi as api
-from  liveApi import liveUtils
-from liveApi import liveLogger
 
+import exchange.bitmex.liveApi.commonApi as api
+from exchange.bitmex.liveApi import liveLogger
+from exchange.bitmex.liveApi import liveUtils
 
 logger = liveLogger.getLiveLogger("Barfeed")
 
@@ -39,9 +42,12 @@ logger = liveLogger.getLiveLogger("Barfeed")
 class liveBar(bar.BasicBar):
     def __init__(self, barDict, frequency):
         self.__DateTimeLocal = liveUtils.timestamp_to_DateTimeLocal(barDict["Timestamp"])
-        super(liveBar, self).__init__(dt.timestamp_to_datetime(barDict["Timestamp"]), barDict["Open"], barDict["High"], barDict["Low"], barDict["Close"], barDict["Volume"], None, frequency)
+        super(liveBar, self).__init__(dt.timestamp_to_datetime(barDict["Timestamp"]), barDict["Open"], barDict["High"],
+                                      barDict["Low"], barDict["Close"], barDict["Volume"], None, frequency)
+
     def getDateTimeLocal(self):
         return self.__DateTimeLocal
+
 
 class PollingThread(threading.Thread):
     def __init__(self):
@@ -51,8 +57,8 @@ class PollingThread(threading.Thread):
     def __wait(self):
         # Wait until getNextCallDateTime checking for cancelation every 0.5 second.
         nextCall = self.getNextCallDateTime()
-#        nextCall = self.getNextCallDateTime() - datetime.timedelta(seconds=3600)
-        logger.info("----nextTime:%s"%liveUtils.utcToLocal(nextCall))
+        #        nextCall = self.getNextCallDateTime() - datetime.timedelta(seconds=3600)
+        logger.info("----nextTime:%s" % liveUtils.utcToLocal(nextCall))
         while not self.__stopped and liveUtils.utcnow() < nextCall:
             time.sleep(0.5)
 
@@ -85,7 +91,6 @@ class PollingThread(threading.Thread):
 
 
 class GetBarThread(PollingThread):
-
     # Events
     ON_HISTORY_BARS = 0
     ON_BARS = 1
@@ -130,7 +135,7 @@ class GetBarThread(PollingThread):
 
             try:
                 for indentifier in self.__identifiers:
-                    response = api.getKLineBar(indentifier, endTimestamp - self.__frequency*2, self.__period, 100)
+                    response = api.getKLineBar(indentifier, endTimestamp - self.__frequency * 2, self.__period, 100)
                     if response is None:
                         raise Exception("getKLineBar return None!")
                     dicts[indentifier] = response
@@ -138,7 +143,7 @@ class GetBarThread(PollingThread):
             except:
                 time.sleep(1)
                 continue
-            
+
         while not self.stopped():
             barDict = {}
             for indentifier in self.__identifiers:
@@ -151,7 +156,7 @@ class GetBarThread(PollingThread):
                 break
             bars = bar.Bars(barDict)
             self.__queue.put((GetBarThread.ON_HISTORY_BARS, bars))
-        
+
     def doCall(self):
         endTimestamp = dt.datetime_to_timestamp(self.__nextBarClose)
         barDict = {}
@@ -208,7 +213,7 @@ class LiveFeed(barfeed.BaseBarFeed):
         if not isinstance(identifiers, list):
             raise Exception("identifiers must be a list")
 
-        self.__queue = Queue.Queue()
+        self.__queue = Queue()
         self.__thread = GetBarThread(self.__queue, identifiers, frequency, datetime.timedelta(seconds=apiCallDelay))
         self.__isHistory = True
         for instrument in identifiers:
@@ -261,4 +266,3 @@ class LiveFeed(barfeed.BaseBarFeed):
         except Queue.Empty:
             pass
         return ret
-

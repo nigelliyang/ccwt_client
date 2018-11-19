@@ -13,8 +13,8 @@ from datetime import datetime
 # timeout in 5 seconds:
 TIMEOUT = 5
 
-#API_HOST = 'be.huobi.com'
-API_HOST = 'api.huobi.pro'
+#API_HOST = 'be.bitmex.com'
+API_HOST = 'https://www.bitmex.com'
 
 SCHEME = 'https'
 

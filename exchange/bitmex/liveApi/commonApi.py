@@ -18,43 +18,42 @@
 .. moduleauthor:: Gabriel Martin Becedillas Ruiz <gabriel.becedillas@gmail.com>
 """
 
-from liveApi.liveUtils import *
-from liveApi import liveLogger
-
-from hbsdk import ApiClient, ApiError
+from exchange.bitmex.bitmex_sdk import ApiClient
+from exchange.bitmex.liveApi import liveLogger
+from exchange.bitmex.liveApi.liveUtils import *
 
 logger = liveLogger.getLiveLogger("K-Line")
 
 client = ApiClient('API_KEY', 'API_SECRET')
 
-def getKLineBar(identifier, endTimestamp, period, length = 1):
-    logger.info('getKLine:%s %s %s %s'%(identifier, endTimestamp, period, length))
+
+def getKLineBar(identifier, endTimestamp, period, length=1):
+    logger.info('getKLine:%s %s %s %s' % (identifier, endTimestamp, period, length))
     length = length + 1 if length < 1000 else 1000
 
-    klines = client.mget('/market/history/kline', symbol=identifier.getSymbol(), period='%dmin'%period, size=length)
+    klines = client.mget('/market/history/kline', symbol=identifier.getSymbol(), period='%dmin' % period, size=length)
     if len(klines) != length:
         return None
-    if timestamp() - endTimestamp > period*60+30 and length < 100:
+    if timestamp() - endTimestamp > period * 60 + 30 and length < 100:
         del klines[1]
     else:
         del klines[0]
     x = klines[0]
     f = timestamp_to_DateTimeLocal
-    logger.info('cur: %s recv: %s ecpect: %s eq: %s'%(f(timestamp()), f(x.id), f(endTimestamp), endTimestamp == x.id))
+    logger.info('cur: %s recv: %s ecpect: %s eq: %s' % (f(timestamp()), f(x.id), f(endTimestamp), endTimestamp == x.id))
     if x.id < endTimestamp:
         return None
     if x.id > endTimestamp:
         klines[0].id = endTimestamp
         logger.info('fuck!')
 
-    return [ {
-              "Timestamp":k.id,
-              "Open":k.open,
-              "High":k.high,
-              "Low":k.low,
-              "Close":k.close,
-              "Volume":k.vol,
-      }
-      for k in klines
+    return [{
+        "Timestamp": k.id,
+        "Open": k.open,
+        "High": k.high,
+        "Low": k.low,
+        "Close": k.close,
+        "Volume": k.vol,
+    }
+        for k in klines
     ]
-

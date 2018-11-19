@@ -5,13 +5,13 @@ from pyalgotrade.technical import ma
 from pyalgotrade.technical import cross
 #from pyalgotrade import plotter
 from pyalgotrade.stratanalyzer import returns
-from liveApi.livebarfeed import LiveFeed
-from liveApi.livebroker import LiveBroker
+from exchange.bitmex.liveApi.livebarfeed import LiveFeed
+from exchange.bitmex.liveApi.livebroker import LiveBroker
 
-from hbClient import hbTradeClient as hbClient
-from hbClient import hbCoinType
+from exchange.bitmex.bitmex_client import BitmexTradeClient as BitmexClient
+from exchange.bitmex.bitmex_client import BitmexCoinType
 
-COIN_TYPE=hbCoinType('ltc', 'usdt')
+COIN_TYPE=BitmexCoinType('ltc', 'usdt')
 K_PERIOD=1
 REQ_DELAY = 0
 
@@ -74,7 +74,7 @@ def run_strategy():
     # commission
 #    broker_commission = broker.backtesting.TradePercentage(0.002)
 #    broker_brk = broker.backtesting.Broker(20000, feed, broker_commission)
-    liveBroker = LiveBroker(COIN_TYPE, hbClient(COIN_TYPE))
+    liveBroker = LiveBroker(COIN_TYPE, BitmexClient(COIN_TYPE))
     # Evaluate the strategy with the feed.
     myStrategy = MyStrategy(feed, COIN_TYPE, liveBroker)
     

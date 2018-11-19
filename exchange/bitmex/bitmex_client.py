@@ -1,14 +1,17 @@
-from liveApi.TradeClientBase import *
-from liveApi.liveUtils import *
+from exchange.bitmex.liveApi.TradeClientBase import *
+from exchange.bitmex.liveApi.liveUtils import *
 from pyalgotrade.utils import dt
-from liveApi import liveLogger
+from exchange.bitmex.liveApi import liveLogger
 
-from hbsdk import ApiClient, ApiError
+from exchange.bitmex.bitmex_sdk import ApiClient, ApiError
+from exchange.bitmex.bitmex import Bitmex
+from exchange.bitmex.api_keys import API_KEY
+from exchange.bitmex.api_keys import API_SECRET
 
-from api_keys import API_KEY
-from api_keys import API_SECRET
-
-logger = liveLogger.getLiveLogger("hbClient")
+logger = liveLogger.getLiveLogger("bitmex_client")
+bit = Bitmex()
+bit.apiKey = API_KEY
+bit.secret = API_SECRET
 
 
 def Str2float(func):
@@ -18,29 +21,29 @@ def Str2float(func):
     return waper
 
 
-class hbOrderType():
-    BuyLimit = 'buy-limit'
-    BuyMarket = 'buy-market'
-    SellLimit = 'sell-limit'
-    SellMarket = 'sell-market'
+class BitmexOrderType(object):
+    BuyLimit = 'buy-limit'  # 限价买
+    BuyMarket = 'buy-market'  # 市价买
+    SellLimit = 'sell-limit'  # 限价卖
+    SellMarket = 'sell-market'  # 市价卖
 
 
-class hbOrderState():
-    OrderFilled = 'filled'
-    OrderCanceled = 'canceled'
-    OrderSubmited = 'submitted'
+class BitmexOrderState(object):
+    OrderFilled = 'filled'  #
+    OrderCanceled = 'canceled'  # 取消
+    OrderSubmited = 'submitted'  # 提交
 
 
-class hbTradeOrder(TradeOrderBase):
+class BitmexTradeOrder(TradeOrderBase):
     def __init__(self, obj):
         self.__obj = obj
-        super(hbTradeOrder, self).__init__()
+        super(BitmexTradeOrder, self).__init__()
 
     def getId(self):
         return self.__obj.id
 
     def isBuy(self):
-        return self.__obj.type in (hbOrderType.BuyLimit, hbOrderType.BuyMarket)
+        return self.__obj.type in (BitmexOrderType.BuyLimit, BitmexOrderType.BuyMarket)
 
     def isSell(self):
         return not self.isBuy()
@@ -58,7 +61,7 @@ class hbTradeOrder(TradeOrderBase):
 
 
 # GET /v1/order/orders/{order-id}/matchresults
-class hbTradeUserTransaction(TradeUserTransactionBase):
+class BitmexTradeUserTransaction(TradeUserTransactionBase):
     def __init__(self, obj):
         self.__obj = obj
 
@@ -79,13 +82,13 @@ class hbTradeUserTransaction(TradeUserTransactionBase):
         return self.__obj['id']
 
     def isFilled(self):
-        return self.__obj['state'] == hbOrderState.OrderFilled
+        return self.__obj['state'] == BitmexOrderState.OrderFilled
 
     def getDateTime(self):
         return dt.timestamp_to_datetime(int(self.__obj['finished-at']) / 1000)
 
 
-class hbTradeAccountBalance(TradeAccountBalanceBase):
+class BitmexTradeAccountBalance(TradeAccountBalanceBase):
     def __init__(self, obj):
         self.__obj = obj
 
@@ -96,7 +99,7 @@ class hbTradeAccountBalance(TradeAccountBalanceBase):
         return self.__obj['coin']
 
 
-class hbCoinType():
+class BitmexCoinType():
     def __init__(self, coin, cash):
         self.__coin = coin
         self.__cash = cash
@@ -115,7 +118,7 @@ class hbCoinType():
         return self.getSymbol()
 
 
-class hbAccountBalance():
+class BitmexAccountBalance():
     def __init__(self, instrument, obj):
         self.__coin = 0
         self.__cash = 0
@@ -137,7 +140,7 @@ class hbAccountBalance():
         return self.__coin
 
 
-class hbTradeClient(TradeClientBase):
+class BitmexTradeClient(TradeClientBase):
     def __init__(self, instrument):
         self.__coinType = instrument
         self.__client = ApiClient(API_KEY, API_SECRET)
@@ -154,17 +157,20 @@ class hbTradeClient(TradeClientBase):
     # --
     # @exceDebug
     def getAccountBalance(self):
-        balances = self.__client.get('/v1/account/accounts/%s/balance' % self.__accountid)
-        acc = hbAccountBalance(self.__coinType, balances)
+        # balances = self.__client.get('/v1/account/accounts/%s/balance' % self.__accountid)
+        balances = bit.fetch_balance()
+        logger.info("balance: {}".format(balances))
+        acc = BitmexAccountBalance(self.__coinType, balances)
+
         logger.info('getAccountBalance: usdt:%s coin:%s' % (acc.getCash(), acc.getCoin()))
-        return hbTradeAccountBalance({'usdt': acc.getCash(), 'coin': acc.getCoin()})
+        return BitmexTradeAccountBalance({'usdt': acc.getCash(), 'coin': acc.getCoin()})
 
     # --
     # @exceDebug
     def getOpenOrders(self):
         logger.info('getOpenOrders:')
         return []
-        '''
+        """
         return [hbTradeOrder({
             'id': ID(),
             'isBuy' : True,
@@ -172,28 +178,28 @@ class hbTradeClient(TradeClientBase):
             'amount' : 1.1234,
             'time' : datetime.datetime.utcnow(),
         })]
-        '''
+        """
 
     # --
     # @exceDebug
     def cancelOrder(self, orderId):
         logger.info('cancelOrder:%s' % orderId)
         self.__client.post('/v1/order/orders/%s/submitcancel' % orderId)
-        self.checkOrderState(orderId, [hbOrderState.OrderCanceled, hbOrderState.OrderFilled])
+        self.checkOrderState(orderId, [BitmexOrderState.OrderCanceled, BitmexOrderState.OrderFilled])
 
     # --
     # @exceDebug
     def buyLimit(self, limitPrice, quantity):
         logger.info('buyLimit:%s %s' % (limitPrice, quantity))
-        orderInfo = self.postOrder(limitPrice, quantity, hbOrderType.BuyLimit)
-        return hbTradeOrder(orderInfo)
+        orderInfo = self.postOrder(limitPrice, quantity, BitmexOrderType.BuyLimit)
+        return BitmexTradeOrder(orderInfo)
 
     # --
     # @exceDebug
     def sellLimit(self, limitPrice, quantity):
         logger.info('sellLimit:%s %s' % (limitPrice, quantity))
-        orderInfo = self.postOrder(limitPrice, quantity, hbOrderType.SellLimit)
-        return hbTradeOrder(orderInfo)
+        orderInfo = self.postOrder(limitPrice, quantity, BitmexOrderType.SellLimit)
+        return BitmexTradeOrder(orderInfo)
 
     # --
     # @exceDebug
@@ -203,7 +209,7 @@ class hbTradeClient(TradeClientBase):
         ret = []
         for oid in ordersId:
             orderInfo = self.__client.get('/v1/order/orders/%s' % oid)
-            ret.append(hbTradeUserTransaction(orderInfo))
+            ret.append(BitmexTradeUserTransaction(orderInfo))
         return ret
 
     def postOrder(self, limitPrice, quantity, orderType):
@@ -218,7 +224,7 @@ class hbTradeClient(TradeClientBase):
             'source': 'api'
         })
         self.activeOrder(order_id)
-        orderInfo = self.checkOrderState(order_id, [hbOrderState.OrderSubmited, hbOrderState.OrderFilled])
+        orderInfo = self.checkOrderState(order_id, [BitmexOrderState.OrderSubmited, BitmexOrderState.OrderFilled])
         return orderInfo
 
     @tryForever

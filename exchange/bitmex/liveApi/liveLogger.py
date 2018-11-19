@@ -1,17 +1,26 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import logging
+import os
+
 from pyalgotrade import logger
-from liveApi import liveUtils
+
+from exchange.bitmex.liveApi import liveUtils
 
 log_format = "%(asctime)s %(name)s [%(levelname)s] %(message)s"
 level = logging.INFO
-file_log = "/logs/info.log"
+log_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# print(log_dir)
+file_log = os.path.join(log_dir, 'logs/info.log')
 
 fileHandler = None
 
 
 class Formatter(logging.Formatter):
     def formatTime(self, record, datefmt=None):
-        return "[%s]"%liveUtils.localTime()
+        return "[%s]" % liveUtils.localTime()
+
 
 def initLogger(logger):
     global fileHandler
@@ -21,8 +30,8 @@ def initLogger(logger):
         fileHandler.setFormatter(Formatter(log_format))
     logger.addHandler(fileHandler)
 
+
 def getLiveLogger(name):
     log = logger.getLogger(name)
     initLogger(log)
     return log
-
