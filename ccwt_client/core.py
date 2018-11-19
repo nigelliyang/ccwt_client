@@ -14,7 +14,7 @@ log = logger.getLogger("core")
 
 class CcwtClient(object):
     _session = None
-    __DEFAULT_BASE_URL = 'http://52.194.88.72:8002/api/'
+    __DEFAULT_BASE_URL = 'http://210.146.174.64:8003/api/'
     __DEFAULT_TIMEOUT = 30
     __TEMPDIR_CACHE = True
 

@@ -27,7 +27,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='ccwt_client',
     packages=['ccwt_client'],
-    version='0.6',
+    version='0.7',
     description='ccwt server client',
     url='https://github.com/nigelliyang/ccwt_client',
     # url='https://github.com/xycfree/ccwt_client',

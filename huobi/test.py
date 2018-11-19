@@ -94,7 +94,9 @@ def run_strategy():
     
     myStrategy.run()
 #    print "Final portfolio value: $%.2f" % myStrategy.getBroker().getEquity()
-    print "Final portfolio value: $%.2f" % myStrategy.getBroker().getCash()
+    print("Final portfolio value: $%.2f" % myStrategy.getBroker().getCash())
+
+
 #    myStrategy.info("Final portfolio value: $%.2f" % myStrategy.getResult())
 
     # Plot the strategy.
