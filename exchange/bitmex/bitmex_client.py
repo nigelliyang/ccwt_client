@@ -8,6 +8,7 @@ from exchange.bitmex.bitmex import Bitmex
 from exchange.bitmex.api_keys import API_KEY
 from exchange.bitmex.api_keys import API_SECRET
 
+# https://github.com/huobiapi/API_Docs/wiki
 logger = liveLogger.getLiveLogger("bitmex_client")
 bit = Bitmex()
 bit.apiKey = API_KEY
@@ -148,6 +149,7 @@ class BitmexTradeClient(TradeClientBase):
 
     @tryForever
     def getAccountId(self):
+        """查询当前用户的所有账户"""
         accs = self.__client.get('/v1/account/accounts')
         for x in accs:
             if x.type == 'spot' and x.state == 'working':
@@ -157,6 +159,7 @@ class BitmexTradeClient(TradeClientBase):
     # --
     # @exceDebug
     def getAccountBalance(self):
+        """获取账户余额"""
         # balances = self.__client.get('/v1/account/accounts/%s/balance' % self.__accountid)
         balances = bit.fetch_balance()
         logger.info("balance: {}".format(balances))
@@ -183,6 +186,7 @@ class BitmexTradeClient(TradeClientBase):
     # --
     # @exceDebug
     def cancelOrder(self, orderId):
+        """取消订单"""
         logger.info('cancelOrder:%s' % orderId)
         self.__client.post('/v1/order/orders/%s/submitcancel' % orderId)
         self.checkOrderState(orderId, [BitmexOrderState.OrderCanceled, BitmexOrderState.OrderFilled])
@@ -190,6 +194,7 @@ class BitmexTradeClient(TradeClientBase):
     # --
     # @exceDebug
     def buyLimit(self, limitPrice, quantity):
+        """限价买"""
         logger.info('buyLimit:%s %s' % (limitPrice, quantity))
         orderInfo = self.postOrder(limitPrice, quantity, BitmexOrderType.BuyLimit)
         return BitmexTradeOrder(orderInfo)
@@ -197,6 +202,7 @@ class BitmexTradeClient(TradeClientBase):
     # --
     # @exceDebug
     def sellLimit(self, limitPrice, quantity):
+        """限价卖"""
         logger.info('sellLimit:%s %s' % (limitPrice, quantity))
         orderInfo = self.postOrder(limitPrice, quantity, BitmexOrderType.SellLimit)
         return BitmexTradeOrder(orderInfo)
@@ -204,6 +210,7 @@ class BitmexTradeClient(TradeClientBase):
     # --
     # @exceDebug
     def getUserTransactions(self, ordersId):
+        """查询当前委托、历史委托"""
         if len(ordersId):
             logger.info('getUserTransactions:%s' % ordersId)
         ret = []
@@ -213,6 +220,7 @@ class BitmexTradeClient(TradeClientBase):
         return ret
 
     def postOrder(self, limitPrice, quantity, orderType):
+        """创建并执行订单"""
         price = str(PriceRound(limitPrice))
         amount = str(CoinRound(quantity))
         order_id = self.__client.post('/v1/order/orders', {
@@ -229,6 +237,7 @@ class BitmexTradeClient(TradeClientBase):
 
     @tryForever
     def checkOrderState(self, orderid, states):
+        """查询一个订单详情"""
         orderInfo = self.__client.get('/v1/order/orders/%s' % orderid)
         if orderInfo.state in states:
             return orderInfo
@@ -236,4 +245,5 @@ class BitmexTradeClient(TradeClientBase):
 
     @tryForever
     def activeOrder(self, orderid):
+        """活动的订单"""
         return self.__client.post('/v1/order/orders/%s/place' % orderid)

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from pyalgotrade.utils import dt
 from datetime import datetime
 import time

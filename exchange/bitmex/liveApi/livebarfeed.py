@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # PyAlgoTrade
 #
 # Copyright 2011-2015 Gabriel Martin Becedillas Ruiz
