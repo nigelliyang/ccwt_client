@@ -146,6 +146,7 @@ class Bitmex (Exchange):
         })
 
     def fetch_markets(self):
+        """获取行情"""
         markets = self.publicGetInstrumentActiveAndIndices()
         result = []
         for p in range(0, len(markets)):
@@ -210,22 +211,10 @@ class Bitmex (Exchange):
         return result
 
     def fetch_balance(self, params={}):
+        """获取账户余额"""
         self.load_markets()
         response = self.privateGetUserMargin({'currency': 'ALL'})  # {'currency': 'all'}
-        """
-                        'user',
-                        'user/affiliateStatus',
-                        'user/checkReferralCode',
-                        'user/commission',
-                        'user/depositAddress',
-                        'user/margin',
-                        'user/minWithdrawalFee',
-                        'user/wallet',
-                        'user/walletHistory',
-                        'user/walletSummary',
-        """
-
-        self.logger.info("\n=========={}===========\n".format(response))
+        self.logger.info("\n========response: {}=========\n".format(response))
         result = {'info': response}
         for b in range(0, len(response)):
             balance = response[b]
@@ -244,6 +233,7 @@ class Bitmex (Exchange):
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """获取当前订单"""
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -270,6 +260,7 @@ class Bitmex (Exchange):
         return result
 
     def fetch_order(self, id, symbol=None, params={}):
+        """获取订单详情"""
         filter = {'filter': {'orderID': id}}
         result = self.fetch_orders(symbol, None, None, self.deep_extend(filter, params))
         numResults = len(result)
@@ -278,6 +269,7 @@ class Bitmex (Exchange):
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """获取批量订单"""
         self.load_markets()
         market = None
         request = {}
@@ -298,15 +290,18 @@ class Bitmex (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """获取打开的订单"""
         filter_params = {'filter': {'open': True}}
         return self.fetch_orders(symbol, since, limit, self.deep_extend(filter_params, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """获取关闭的订单"""
         # Bitmex barfs if you set 'open': False in the filter...
         orders = self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
     def fetch_ticker(self, symbol, params={}):
+        """获取ticker数据"""
         self.load_markets()
         market = self.market(symbol)
         if not market['active']:
@@ -470,6 +465,7 @@ class Bitmex (Exchange):
         return result
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """获取交易详情"""
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -483,6 +479,15 @@ class Bitmex (Exchange):
         return self.parse_trades(response, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """ 创建订单
+        :param symbol: symbol
+        :param type: 订单类型
+        :param side: BUY SELL
+        :param amount: 数量
+        :param price: 价格
+        :param params:
+        :return:
+        """
         self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -499,6 +504,7 @@ class Bitmex (Exchange):
         return self.extend({'info': response}, order)
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+        """编辑订单"""
         self.load_markets()
         request = {
             'orderID': id,
@@ -513,6 +519,7 @@ class Bitmex (Exchange):
         return self.extend({'info': response}, order)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """订单取消"""
         self.load_markets()
         response = self.privateDeleteOrder(self.extend({'orderID': id}, params))
         order = response[0]
@@ -532,6 +539,7 @@ class Bitmex (Exchange):
         return False
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        """提现"""
         self.check_address(address)
         self.load_markets()
         if currency != 'BTC':
@@ -597,7 +605,8 @@ if __name__ == '__main__':
     aa = Bitmex()
     aa.apiKey = API_KEY
     aa.secret = API_SECRET
-    res = aa.fetch_balance()
+    # res = aa.fetch_balance()
+    res = aa.fetch_open_orders()
     # res = aa.fetch_ohlcv("BTC/USDT")
     # res = aa.fetch_time()
     print("==============================================")

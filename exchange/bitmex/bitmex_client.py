@@ -11,10 +11,6 @@ from exchange.bitmex.api_keys import API_SECRET
 # https://github.com/huobiapi/API_Docs/wiki
 # https://github.com/huobiapi/API_Docs/wiki/REST_api_reference
 logger = liveLogger.getLiveLogger("bitmex_client")
-bitmex = Bitmex()
-bitmex.apiKey = API_KEY
-bitmex.secret = API_SECRET
-
 
 def Str2float(func):
     def waper(*args, **kwargs):
@@ -107,8 +103,8 @@ class BitmexTradeAccountBalance(TradeAccountBalanceBase):
 
 class BitmexCoinType():
     def __init__(self, coin, cash):
-        self.__coin = coin
-        self.__cash = cash
+        self.__coin = coin  # 货币
+        self.__cash = cash  # 现金
         self.__symbol = coin + cash
 
     def getCoin(self):
@@ -149,7 +145,9 @@ class BitmexAccountBalance():
 class BitmexTradeClient(TradeClientBase):
     def __init__(self, instrument):
         self.__coinType = instrument
-        self.__client = ApiClient(API_KEY, API_SECRET)
+        self.__client = Bitmex()
+        self.__client.apiKey = API_KEY
+        self.__client.secret = API_SECRET
         self.__accountid = self.getAccountId()
 
     @tryForever
@@ -161,23 +159,22 @@ class BitmexTradeClient(TradeClientBase):
                 return x.id
         raise Exception('no active account ID!')
 
-    # --
     # @exceDebug
     def getAccountBalance(self):
         """获取账户余额"""
         # balances = self.__client.get('/v1/account/accounts/%s/balance' % self.__accountid)
-        balances = bit.fetch_balance()
+        balances = self.__client.fetch_balance()
         logger.info("balance: {}".format(balances))
         acc = BitmexAccountBalance(self.__coinType, balances)
 
         logger.info('getAccountBalance: usdt:%s coin:%s' % (acc.getCash(), acc.getCoin()))
         return BitmexTradeAccountBalance({'usdt': acc.getCash(), 'coin': acc.getCoin()})
 
-    # --
     # @exceDebug
     def getOpenOrders(self):
         logger.info('getOpenOrders:')
-        return []
+        open_order = self.__client.fetch_open_orders(symbol=self.__coinType)
+        return open_order
         """
         return [hbTradeOrder({
             'id': ID(),
@@ -193,13 +190,19 @@ class BitmexTradeClient(TradeClientBase):
     def cancelOrder(self, orderId):
         """取消订单"""
         logger.info('cancelOrder:%s' % orderId)
-        self.__client.post('/v1/order/orders/%s/submitcancel' % orderId)
+        self.__client.cancel_order(orderId)
+        # self.__client.fetch_order_status(orderId)
+
         self.checkOrderState(orderId, [BitmexOrderState.OrderCanceled, BitmexOrderState.OrderFilled])
 
     # --
     # @exceDebug
     def buyLimit(self, limitPrice, quantity):
-        """限价买"""
+        """ 限价买
+        :param limitPrice: 价格
+        :param quantity: 数量
+        :return:
+        """
         logger.info('buyLimit:%s %s' % (limitPrice, quantity))
         orderInfo = self.postOrder(limitPrice, quantity, BitmexOrderType.BuyLimit)
         return BitmexTradeOrder(orderInfo)
@@ -228,14 +231,15 @@ class BitmexTradeClient(TradeClientBase):
         """创建并执行订单"""
         price = str(PriceRound(limitPrice))
         amount = str(CoinRound(quantity))
-        order_id = self.__client.post('/v1/order/orders', {
-            'account-id': self.__accountid,
-            'amount': amount,
-            'price': price,
-            'symbol': self.__coinType.getSymbol(),
-            'type': orderType,
-            'source': 'api'
-        })
+        order_id = self.__client.create_order(self.__coinType, orderType, amount=amount, price=price)
+        # order_id = self.__client.post('/v1/order/orders', {
+        #     'account-id': self.__accountid,
+        #     'amount': amount,
+        #     'price': price,
+        #     'symbol': self.__coinType.getSymbol(),
+        #     'type': orderType,
+        #     'source': 'api'
+        # })
         self.activeOrder(order_id)
         orderInfo = self.checkOrderState(order_id, [BitmexOrderState.OrderSubmited, BitmexOrderState.OrderFilled])
         return orderInfo
@@ -247,12 +251,11 @@ class BitmexTradeClient(TradeClientBase):
                 submitted 已提交, partial-filled 部分成交, partial-canceled 部分成交撤销,
                 filled 完全成交, canceled 已撤销
         """
-        orderInfo = self.__client.get('/v1/order/orders/%s' % orderid)
+        orderInfo = self.__client.fetch_order_status(orderid)
         if orderInfo.state in states:
             return orderInfo
         raise Exception('wait state:%s => %s' % (orderInfo.state, states))
 
-        orderInfo = bitmex.fetch_order(orderid, )
 
 
 
@@ -260,4 +263,5 @@ class BitmexTradeClient(TradeClientBase):
     @tryForever
     def activeOrder(self, orderid):
         """活动的订单"""
-        return self.__client.post('/v1/order/orders/%s/place' % orderid)
+        # return self.__client.post('/v1/order/orders/%s/place' % orderid)
+        return self.__client.fetch_order_status(orderid)
