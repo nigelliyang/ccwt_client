@@ -9,10 +9,11 @@ from exchange.bitmex.api_keys import API_KEY
 from exchange.bitmex.api_keys import API_SECRET
 
 # https://github.com/huobiapi/API_Docs/wiki
+# https://github.com/huobiapi/API_Docs/wiki/REST_api_reference
 logger = liveLogger.getLiveLogger("bitmex_client")
-bit = Bitmex()
-bit.apiKey = API_KEY
-bit.secret = API_SECRET
+bitmex = Bitmex()
+bitmex.apiKey = API_KEY
+bitmex.secret = API_SECRET
 
 
 def Str2float(func):
@@ -30,9 +31,13 @@ class BitmexOrderType(object):
 
 
 class BitmexOrderState(object):
-    OrderFilled = 'filled'  #
+    OrderFilled = 'filled'  # 完全成交
     OrderCanceled = 'canceled'  # 取消
     OrderSubmited = 'submitted'  # 提交
+    """
+    submitted 已提交, partial-filled 部分成交, partial-canceled 部分成交撤销, 
+                filled 完全成交, canceled 已撤销
+    """
 
 
 class BitmexTradeOrder(TradeOrderBase):
@@ -237,11 +242,20 @@ class BitmexTradeClient(TradeClientBase):
 
     @tryForever
     def checkOrderState(self, orderid, states):
-        """查询一个订单详情"""
+        """查询一个订单详情
+            states:
+                submitted 已提交, partial-filled 部分成交, partial-canceled 部分成交撤销,
+                filled 完全成交, canceled 已撤销
+        """
         orderInfo = self.__client.get('/v1/order/orders/%s' % orderid)
         if orderInfo.state in states:
             return orderInfo
         raise Exception('wait state:%s => %s' % (orderInfo.state, states))
+
+        orderInfo = bitmex.fetch_order(orderid, )
+
+
+
 
     @tryForever
     def activeOrder(self, orderid):
