@@ -7,12 +7,14 @@ from pyalgotrade.technical import cross
 from pyalgotrade.stratanalyzer import returns
 from exchange.bitmex.liveApi.livebarfeed import LiveFeed
 from exchange.bitmex.liveApi.livebroker import LiveBroker
-from exchange.bitmex.liveApi import liveLogger
 
 from exchange.bitmex.bitmex_client import BitmexTradeClient as BitmexClient
 from exchange.bitmex.bitmex_client import BitmexCoinType
+# from exchange.bitmex.liveApi import liveLogger
+from pyalgotrade import logger as log
 
-logger = liveLogger.getLiveLogger("MyStrategy")
+# logger = liveLogger.getLiveLogger("MyStrategy")
+logger = log.getLogger("MyStrategy")
 
 COIN_TYPE = BitmexCoinType('btc', 'usdt')
 K_PERIOD = 60

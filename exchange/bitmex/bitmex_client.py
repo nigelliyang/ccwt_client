@@ -1,8 +1,8 @@
 from exchange.bitmex.liveApi.TradeClientBase import *
 from exchange.bitmex.liveApi.liveUtils import *
 from pyalgotrade.utils import dt
-from exchange.bitmex.liveApi import liveLogger
-
+# from exchange.bitmex.liveApi import liveLogger
+import pyalgotrade.logger as log
 from exchange.bitmex.bitmex_sdk import ApiClient, ApiError
 from exchange.bitmex.bitmex import Bitmex
 from exchange.bitmex.api_keys import API_KEY
@@ -10,7 +10,8 @@ from exchange.bitmex.api_keys import API_SECRET
 
 # https://github.com/huobiapi/API_Docs/wiki
 # https://github.com/huobiapi/API_Docs/wiki/REST_api_reference
-logger = liveLogger.getLiveLogger("bitmex_client")
+# logger = liveLogger.getLiveLogger("bitmex_client")
+logger = log.getLogger("bitmex_client")
 
 def Str2float(func):
     def waper(*args, **kwargs):
@@ -153,7 +154,7 @@ class BitmexTradeClient(TradeClientBase):
     @tryForever
     def getAccountId(self):
         """查询当前用户的所有账户"""
-        accs = self.__client.get('/v1/account/accounts')
+        accs = self.__client.fetch_balance()  # 获取账户ID
         for x in accs:
             if x.type == 'spot' and x.state == 'working':
                 return x.id

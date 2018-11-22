@@ -29,9 +29,10 @@ except:
 from pyalgotrade import broker
 from pyalgotrade.bitstamp import common
 from exchange.bitmex.liveApi import liveUtils
-from exchange.bitmex.liveApi import liveLogger
-
-logger = liveLogger.getLiveLogger("Broker")
+# from exchange.bitmex.liveApi import liveLogger
+import pyalgotrade.logger as log
+# logger = liveLogger.getLiveLogger("Broker")
+logger = log.getLogger("Broker")
 
 class BTCTraits(broker.InstrumentTraits):
     def roundQuantity(self, quantity):

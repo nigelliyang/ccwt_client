@@ -21,11 +21,12 @@
 """
 
 from exchange.bitmex.bitmex_sdk import ApiClient
-from exchange.bitmex.liveApi import liveLogger
+# from exchange.bitmex.liveApi import liveLogger
+import pyalgotrade.logger as log
 from exchange.bitmex.liveApi.liveUtils import *
 
-logger = liveLogger.getLiveLogger("K-Line")
-
+# logger = liveLogger.getLiveLogger("K-Line")
+logger = log.getLogger("K-line")
 client = ApiClient('API_KEY', 'API_SECRET')
 
 

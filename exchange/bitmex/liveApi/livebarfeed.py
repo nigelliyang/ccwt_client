@@ -35,11 +35,11 @@ from pyalgotrade import resamplebase
 from pyalgotrade.utils import dt
 
 import exchange.bitmex.liveApi.commonApi as api
-from exchange.bitmex.liveApi import liveLogger
+# from exchange.bitmex.liveApi import liveLogger
 from exchange.bitmex.liveApi import liveUtils
-
-logger = liveLogger.getLiveLogger("Barfeed")
-
+import pyalgotrade.logger as log
+# logger = liveLogger.getLiveLogger("Barfeed")
+logger = log.getLogger("Barfeed")
 
 class liveBar(bar.BasicBar):
     def __init__(self, barDict, frequency):

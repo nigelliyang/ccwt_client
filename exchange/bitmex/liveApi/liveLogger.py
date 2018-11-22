@@ -10,9 +10,14 @@ from exchange.bitmex.liveApi import liveUtils
 
 log_format = "%(asctime)s %(name)s [%(levelname)s] %(message)s"
 level = logging.INFO
-log_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-# print(log_dir)
-file_log = os.path.join(log_dir, 'logs/info.log')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# print(BASE_DIR)
+log_dir = os.path.join(BASE_DIR, 'logs')
+_file = 'info.log'
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)  # 判断路径是否存在，不存在则创建路径
+file_log = os.path.join(log_dir, _file)
+
 
 fileHandler = None
 
