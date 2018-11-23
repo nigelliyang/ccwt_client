@@ -308,9 +308,9 @@ class Bitmex (Exchange):
             raise ExchangeError(self.id + ': symbol ' + symbol + ' is delisted')
         request = self.extend({
             'symbol': market['id'],
-            'binSize': '1d',
+            'binSize': params.get('binSize', '') or '1d',
             'partial': True,
-            'count': 1,
+            'count': params.get('count', 100) or 1000,
             'reverse': True,
         }, params)
         bid = None
@@ -327,7 +327,7 @@ class Bitmex (Exchange):
         open = self.safe_float(ticker, 'open')
         close = self.safe_float(ticker, 'close')
         change = close - open
-        return {
+        return [{
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -348,7 +348,7 @@ class Bitmex (Exchange):
             'baseVolume': self.safe_float(ticker, 'homeNotional'),
             'quoteVolume': self.safe_float(ticker, 'foreignNotional'),
             'info': ticker,
-        }
+        } for ticker in tickers]
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         timestamp = self.parse8601(ohlcv['timestamp']) - self.parse_timeframe(timeframe) * 1000
@@ -606,8 +606,12 @@ if __name__ == '__main__':
     aa.apiKey = API_KEY
     aa.secret = API_SECRET
     # res = aa.fetch_balance()
-    res = aa.fetch_open_orders()
-    # res = aa.fetch_ohlcv("BTC/USDT")
+    # res = aa.fetch_open_orders()
+    res = aa.fetch_ohlcv("XBTZ18")
     # res = aa.fetch_time()
+    # res = aa.fetch_ticker("XBTZ18", params={"binSize": '1m', 'count': '5'})
+    # res = aa.fetch_free_balance("XBTZ18")  # 可用余额
+    # res = aa.fetch_markets()
     print("==============================================")
     print(res)
+    print(type(res))
