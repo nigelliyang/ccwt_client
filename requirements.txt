@@ -1,3 +1,4 @@
 requests==2.18.4
 requests-cache==0.4.13
 pyalgotrade==0.20
+coinmarketcap==5.0.3

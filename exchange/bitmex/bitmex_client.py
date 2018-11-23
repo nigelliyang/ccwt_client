@@ -104,8 +104,8 @@ class BitmexTradeAccountBalance(TradeAccountBalanceBase):
 
 class BitmexCoinType():
     def __init__(self, coin, cash):
-        self.__coin = coin  # 货币
-        self.__cash = cash  # 现金
+        self.__coin = coin  # 货币  本币
+        self.__cash = cash  # 现金  usdt
         self.__symbol = coin + cash
 
     def getCoin(self):
@@ -133,6 +133,8 @@ class BitmexAccountBalance():
                 self.__coin = x.balance
             elif x.currency == instrument.getCash() and x.type == 'trade':
                 self.__cash = x.balance
+
+
 
     @Str2float
     def getCash(self):
