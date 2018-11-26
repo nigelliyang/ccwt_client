@@ -285,7 +285,8 @@ class LiveBroker(broker.Broker):
                 return self._onUserTrades(eventData)
             else:
                 logger.error("Invalid event received to dispatch: %s - %s" % (eventType, eventData))
-        except Queue.Empty:
+        except Exception as e:
+            logger.info("livebroker.py line 289:{}".format(e))
             pass
 
     def peekDateTime(self):

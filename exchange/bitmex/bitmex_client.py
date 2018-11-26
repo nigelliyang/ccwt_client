@@ -125,14 +125,18 @@ class BitmexAccountBalance():
     def __init__(self, instrument, obj):
         self.__coin = 0
         self.__cash = 0
-        balances = obj.get('list')
-        if balances is None:
+        logger.info("instrument:{},{}.".format(instrument, type(instrument)))
+        logger.info("instrument.getCoin: {}".format(instrument.getCoin().upper()))
+        # logger.info(obj)
+        if not obj:
             return
-        for x in balances:
-            if x.currency == instrument.getCoin() and x.type == 'trade':
-                self.__coin = x.balance
-            elif x.currency == instrument.getCash() and x.type == 'trade':
-                self.__cash = x.balance
+        self.__coin = obj.get(instrument.getCoin().upper(), {}).get('free')
+        logger.info("BitmexAccountBalance.__coin: {}".format(self.__coin))
+        if instrument.getCash() in ['usdt', 'USDT']:
+            from exchange.bitmex.common import base_usdt_price
+            self.__cash = base_usdt_price() * self.__coin
+        else:
+            self.__cash = 0.0
 
 
 
@@ -157,9 +161,9 @@ class BitmexTradeClient(TradeClientBase):
     def getAccountId(self):
         """查询当前用户的所有账户"""
         accs = self.__client.fetch_balance()  # 获取账户ID
-        for x in accs:
-            if x.type == 'spot' and x.state == 'working':
-                return x.id
+        info = accs.get('info', [])[0]
+        if info:
+            return info.get('account')
         raise Exception('no active account ID!')
 
     # @exceDebug
@@ -167,16 +171,19 @@ class BitmexTradeClient(TradeClientBase):
         """获取账户余额"""
         # balances = self.__client.get('/v1/account/accounts/%s/balance' % self.__accountid)
         balances = self.__client.fetch_balance()
-        logger.info("balance: {}".format(balances))
+        # logger.info("balance: {}".format(balances))
+        logger.info("getAccountBalance __coinType:{}.".format(self.__coinType))
         acc = BitmexAccountBalance(self.__coinType, balances)
-
         logger.info('getAccountBalance: usdt:%s coin:%s' % (acc.getCash(), acc.getCoin()))
         return BitmexTradeAccountBalance({'usdt': acc.getCash(), 'coin': acc.getCoin()})
 
     # @exceDebug
     def getOpenOrders(self):
-        logger.info('getOpenOrders:')
-        open_order = self.__client.fetch_open_orders(symbol=self.__coinType)
+        logger.info('getOpenOrders, __coinType: {}, type: {}....'.format(
+            self.__coinType, type(self.__coinType)))
+        _symbol = 'BTC/USD' if str(self.__coinType) == 'btcusdt' else self.__coinType
+        logger.info("_symbol: {}".format(_symbol))
+        open_order = self.__client.fetch_open_orders(symbol=_symbol)
         return open_order
         """
         return [hbTradeOrder({
@@ -226,7 +233,7 @@ class BitmexTradeClient(TradeClientBase):
             logger.info('getUserTransactions:%s' % ordersId)
         ret = []
         for oid in ordersId:
-            orderInfo = self.__client.get('/v1/order/orders/%s' % oid)
+            orderInfo = self.__client.fetch_order(ordersId)
             ret.append(BitmexTradeUserTransaction(orderInfo))
         return ret
 
@@ -268,3 +275,23 @@ class BitmexTradeClient(TradeClientBase):
         """活动的订单"""
         # return self.__client.post('/v1/order/orders/%s/place' % orderid)
         return self.__client.fetch_order_status(orderid)
+
+    def get_ticker(self, symbol, **kwargs):
+        res = self.__client.fetch_ticker(symbol, params=kwargs)
+        """ bar.BasicBar(date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
+            row.get('close', 0), row[volume], None, frequency))"""
+        return [
+            [row.get(datetime), row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
+             row.get('close', 0), row.get('volume', 0) or row.get('quoteVolume', 0)]
+            for row in res
+        ]
+
+    def get_kline(self, symbol, **kwargs):
+        res = self.__client.fetch_ticker(symbol, params=kwargs)
+        """ bar.BasicBar(date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
+            row.get('close', 0), row[volume], None, frequency))"""
+        return [
+            [row.get(datetime), row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
+             row.get('close', 0), row.get('volume', 0) or row.get('quoteVolume', 0)]
+            for row in res
+        ]

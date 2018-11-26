@@ -77,7 +77,7 @@ class MyStrategy(strategy.BaseStrategy):
 
 def run_strategy():
     logger.info("-------START-------")
-    feed = LiveFeed([COIN_TYPE], Frequency.MINUTE * K_PERIOD, REQ_DELAY)
+    feed = LiveFeed([COIN_TYPE], Frequency.MINUTE, REQ_DELAY)
     liveBroker = LiveBroker(COIN_TYPE, BitmexClient(COIN_TYPE))
     myStrategy = MyStrategy(feed, COIN_TYPE, liveBroker)
     myStrategy.run()

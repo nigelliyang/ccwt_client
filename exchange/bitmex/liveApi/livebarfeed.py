@@ -98,17 +98,32 @@ class GetBarThread(PollingThread):
     ON_BARS = 1
 
     def __init__(self, queue, identifiers, frequency, apiCallDelay):
+        """frequency  1m, 5m, 1h, 1d"""
         PollingThread.__init__(self)
 
+        if frequency == bar.Frequency.MINUTE:
+            self.__precision = '1m'
+        elif frequency == bar.Frequency.HOUR:
+            self.__precision = '1h'
+        elif frequency == bar.Frequency.DAY:
+            self.__precision = '1d'
+        elif frequency == bar.Frequency.WEEK:
+            self.__precision = '1d'  # * 7
+        elif frequency == bar.Frequency.MONTH:
+            self.__precision = '1d'  # * 30
+        else:  # bar.Frequency.SECOND:
+            self.__precision = '1m'  # / 60
+
+
         # Map frequency to precision and period.
-        if frequency < bar.Frequency.MINUTE:
-            raise Exception("Frequency must be greater than or equal to bar.Frequency.MINUTE")
-        elif frequency < bar.Frequency.HOUR:
-            self.__precision = "Minutes"
-        elif frequency < bar.Frequency.DAY:
-            self.__precision = "Hours"
-        else:
-            raise Exception("Frequency must be less than bar.Frequency.DAY")
+        # if frequency < bar.Frequency.MINUTE:
+        #     raise Exception("Frequency must be greater than or equal to bar.Frequency.MINUTE")
+        # elif frequency < bar.Frequency.HOUR:
+        #     self.__precision = "Minutes"
+        # elif frequency < bar.Frequency.DAY:
+        #     self.__precision = "Hours"
+        # else:
+        #     raise Exception("Frequency must be less than bar.Frequency.DAY")
         self.__period = frequency / bar.Frequency.MINUTE
 
         self.__queue = queue
@@ -118,6 +133,9 @@ class GetBarThread(PollingThread):
         # The delay between the bar's close and the API call.
         self.__apiCallDelay = apiCallDelay
         self.__updateNextBarClose()
+
+
+
 
     def __updateNextBarClose(self):
         self.__nextBarClose = resamplebase.build_range(liveUtils.utcnow(), self.__frequency).getEnding()
@@ -130,6 +148,7 @@ class GetBarThread(PollingThread):
         super(GetBarThread, self).run()
 
     def doGetHistory(self):
+        dicts = {}
         while not self.stopped():
             endTimestamp = dt.datetime_to_timestamp(self.__nextBarClose)
             self.__updateNextBarClose()
@@ -137,7 +156,10 @@ class GetBarThread(PollingThread):
 
             try:
                 for indentifier in self.__identifiers:
-                    response = api.getKLineBar(indentifier, endTimestamp - self.__frequency * 2, self.__period, 100)
+                    # response = api.getKLineBar(indentifier, endTimestamp - self.__frequency * 2, self.__period, 100)
+                    response = api.getKLineBar(indentifier, self.__precision, self.__period, 100)
+
+
                     if response is None:
                         raise Exception("getKLineBar return None!")
                     dicts[indentifier] = response
@@ -165,7 +187,9 @@ class GetBarThread(PollingThread):
 
         for indentifier in self.__identifiers:
             try:
-                response = api.getKLineBar(indentifier, endTimestamp - self.__frequency, self.__period)
+                # response = api.getKLineBar(indentifier, endTimestamp - self.__frequency, self.__period)
+                response = api.getKLineBar(indentifier, self.__precision, self.__period, 100)
+
                 if response is None:
                     raise Exception("getKLineBar return None!")
                 # logger.debug(response)
@@ -265,6 +289,7 @@ class LiveFeed(barfeed.BaseBarFeed):
                 ret = eventData
             else:
                 logger.error("Invalid event received: %s - %s" % (eventType, eventData))
-        except Queue.Empty:
+        except Exception as e:
+            logger.info("Exception line 292: {}".format(e))
             pass
         return ret

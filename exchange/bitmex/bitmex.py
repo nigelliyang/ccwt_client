@@ -271,6 +271,7 @@ class Bitmex (Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         """获取批量订单"""
         self.load_markets()
+        # print('===============load_markets: {}================='.format(self.load_markets()))
         market = None
         request = {}
         if symbol is not None:
@@ -310,7 +311,7 @@ class Bitmex (Exchange):
             'symbol': market['id'],
             'binSize': params.get('binSize', '') or '1d',
             'partial': True,
-            'count': params.get('count', 100) or 1000,
+            'count': params.get('count', 100),
             'reverse': True,
         }, params)
         bid = None
@@ -606,12 +607,13 @@ if __name__ == '__main__':
     aa.apiKey = API_KEY
     aa.secret = API_SECRET
     # res = aa.fetch_balance()
-    # res = aa.fetch_open_orders()
-    res = aa.fetch_ohlcv("XBTZ18")
+    # res = aa.fetch_open_orders("XBTZ18")
+    # res = aa.fetch_ohlcv("XBTZ18")
     # res = aa.fetch_time()
-    # res = aa.fetch_ticker("XBTZ18", params={"binSize": '1m', 'count': '5'})
+    res = aa.fetch_ticker("BTC/USD", params={"binSize": '1m', 'count': '5'})
     # res = aa.fetch_free_balance("XBTZ18")  # 可用余额
     # res = aa.fetch_markets()
+    # res = aa.fetch_orders("BTC/USD")
     print("==============================================")
     print(res)
     print(type(res))
