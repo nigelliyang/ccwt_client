@@ -28,9 +28,19 @@ class BitmexOrderType(object):
 
 
 class BitmexOrderState(object):
-    OrderFilled = 'filled'  # 完全成交
+    """
+    statuses = {
+            'new': 'open',
+            'partiallyfilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'expired': 'expired',
+        }
+    """
+    OrderFilled = "closed"   #　'filled'  # 完全成交
     OrderCanceled = 'canceled'  # 取消
-    OrderSubmited = 'submitted'  # 提交
+    OrderSubmited = "open"  #　 'submitted'  # 提交
     """
     submitted 已提交, partial-filled 部分成交, partial-canceled 部分成交撤销, 
                 filled 完全成交, canceled 已撤销
@@ -79,16 +89,21 @@ class BitmexTradeUserTransaction(TradeUserTransactionBase):
 
     @Str2float
     def getFee(self):
-        return self.__obj['field-fees']
+        return self.__obj.get('fee', 0.0)
 
     def getOrderId(self):
-        return self.__obj['id']
+        return self.__obj.get('orderId', '')
 
     def isFilled(self):
-        return self.__obj['state'] == BitmexOrderState.OrderFilled
+        return self.__obj.get('ordStatus', '') == BitmexOrderState.OrderFilled
 
     def getDateTime(self):
-        return dt.timestamp_to_datetime(int(self.__obj['finished-at']) / 1000)
+        _time =  self.__obj.get('timestamp')
+        _time = datetime.datetime.strptime(_time, "%Y-%m-%dT%H:%M:%S%fZ")
+        _time = datetime.datetime.strftime(_time, "%Y-%m-%d %H:%M:%S")
+        _time = datetime.datetime.strptime(_time, "%Y-%m-%d %H:%M:%S")
+        return _time
+        # return dt.timestamp_to_datetime(int(self.__obj['finished-at']) / 1000)
 
 
 class BitmexTradeAccountBalance(TradeAccountBalanceBase):
@@ -102,7 +117,7 @@ class BitmexTradeAccountBalance(TradeAccountBalanceBase):
         return self.__obj['coin']
 
 
-class BitmexCoinType():
+class BitmexCoinType(object):
     def __init__(self, coin, cash):
         self.__coin = coin  # 货币  本币
         self.__cash = cash  # 现金  usdt
@@ -121,7 +136,7 @@ class BitmexCoinType():
         return self.getSymbol()
 
 
-class BitmexAccountBalance():
+class BitmexAccountBalance(object):
     def __init__(self, instrument, obj):
         self.__coin = 0
         self.__cash = 0
