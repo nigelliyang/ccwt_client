@@ -11,7 +11,7 @@ from exchange.bitmex.liveApi.livebroker import LiveBroker
 from exchange.bitmex.bitmex_client import BitmexTradeClient as BitmexClient
 from exchange.bitmex.bitmex_client import BitmexCoinType
 
-COIN_TYPE=BitmexCoinType('ltc', 'usdt')
+COIN_TYPE=BitmexCoinType('btc', 'usdt')
 K_PERIOD=1
 REQ_DELAY = 0
 

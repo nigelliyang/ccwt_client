@@ -309,7 +309,7 @@ class Bitmex (Exchange):
             raise ExchangeError(self.id + ': symbol ' + symbol + ' is delisted')
         request = self.extend({
             'symbol': market['id'],
-            'binSize': params.get('binSize', '') or '1d',
+            'binSize': params.get('binSize', '') or '1m',
             'partial': True,
             'count': params.get('count', 100),
             'reverse': True,

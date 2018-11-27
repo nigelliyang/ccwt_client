@@ -33,10 +33,13 @@ logger = log.getLogger("K-line")
 def getKLineBar(identifier, precision, period, length=1):
     logger.info('getKLine:%s %s %s %s' % (identifier, precision, period, length))
     # length = length + 1 if length < 10 else 10
-    length = 5
+    length = 100
+    logger.info("===========kline start: {}===============".format(identifier.getSymbol()))
     client = BitmexTradeClient(identifier)
 
     # klines = client.mget('/market/history/kline', symbol=identifier.getSymbol(), period='%dmin' % period, size=length)
     klines = client.get_kline(identifier.getSymbol(), **{'binSize': precision, 'count': length})
     logger.info("klines: {}".format(klines))
+    logger.info("===========kline end===============")
+
     return klines

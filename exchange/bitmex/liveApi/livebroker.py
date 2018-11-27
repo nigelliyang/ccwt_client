@@ -145,7 +145,7 @@ class LiveBroker(broker.Broker):
           * Sell limit order
     """
 
-    QUEUE_TIMEOUT = 0.01
+    QUEUE_TIMEOUT = 3
 
     def __init__(self, instrument, TradeClient):
         super(LiveBroker, self).__init__()
@@ -286,7 +286,7 @@ class LiveBroker(broker.Broker):
             else:
                 logger.error("Invalid event received to dispatch: %s - %s" % (eventType, eventData))
         except Exception as e:
-            logger.info("livebroker.py line 289:{}".format(e))
+            logger.exception("livebroker.py line 289:{}".format(e))
             pass
 
     def peekDateTime(self):

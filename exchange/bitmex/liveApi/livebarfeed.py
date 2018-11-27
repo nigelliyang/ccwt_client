@@ -80,7 +80,7 @@ class PollingThread(threading.Thread):
                 ret = False
                 try:
                     ret = self.doCall()
-                except Exception as  e:
+                except Exception as e:
                     logger.critical("Unhandled exception", exc_info=e)
         logger.debug("Thread finished.")
 
@@ -232,7 +232,7 @@ class LiveFeed(barfeed.BaseBarFeed):
          * **XNYS**: NEW YORK STOCK EXCHANGE, INC
     """
 
-    QUEUE_TIMEOUT = 0.01
+    QUEUE_TIMEOUT = 1
 
     def __init__(self, identifiers, frequency, apiCallDelay=30, maxLen=dataseries.DEFAULT_MAX_LEN):
         barfeed.BaseBarFeed.__init__(self, frequency, maxLen)
@@ -290,6 +290,6 @@ class LiveFeed(barfeed.BaseBarFeed):
             else:
                 logger.error("Invalid event received: %s - %s" % (eventType, eventData))
         except Exception as e:
-            logger.info("Exception line 292: {}".format(e))
+            logger.exception("Exception livebarfeed.py: {}".format(e))
             pass
         return ret
