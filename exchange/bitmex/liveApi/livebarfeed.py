@@ -23,10 +23,8 @@
 import datetime
 import threading
 import time
-try:
-    import Queue
-except:
-    from queue import Queue
+import queue
+
 
 from pyalgotrade import bar
 from pyalgotrade import barfeed
@@ -239,7 +237,7 @@ class LiveFeed(barfeed.BaseBarFeed):
         if not isinstance(identifiers, list):
             raise Exception("identifiers must be a list")
 
-        self.__queue = Queue()
+        self.__queue = queue.Queue()
         self.__thread = GetBarThread(self.__queue, identifiers, frequency, datetime.timedelta(seconds=apiCallDelay))
         self.__isHistory = True
         for instrument in identifiers:

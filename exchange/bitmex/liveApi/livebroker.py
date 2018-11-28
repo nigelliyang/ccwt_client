@@ -19,13 +19,9 @@
 """
 .. moduleauthor:: Gabriel Martin Becedillas Ruiz <gabriel.becedillas@gmail.com>
 """
-
+import queue
 import threading
 import time
-try:
-    import Queue
-except:
-    from queue import Queue
 from pyalgotrade import broker
 from pyalgotrade.bitstamp import common
 from exchange.bitmex.liveApi import liveUtils
@@ -65,8 +61,8 @@ class TradeMonitor(threading.Thread):
     def __init__(self, httpClient):
         super(TradeMonitor, self).__init__()
         self.__httpClient = httpClient
-        self.__queue = Queue()
-        self.__queueOrder = Queue()
+        self.__queue = queue.Queue()
+        self.__queueOrder = queue.Queue()
         self.__ordersId = []
         self.__stop = False
         logger.info("POLL_FREQUENCY is %d"%TradeMonitor.POLL_FREQUENCY)
@@ -285,8 +281,7 @@ class LiveBroker(broker.Broker):
                 return self._onUserTrades(eventData)
             else:
                 logger.error("Invalid event received to dispatch: %s - %s" % (eventType, eventData))
-        except Exception as e:
-            logger.exception("livebroker.py line 289:{}".format(e))
+        except queue.Empty:
             pass
 
     def peekDateTime(self):
