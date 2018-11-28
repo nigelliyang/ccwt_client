@@ -287,7 +287,6 @@ class LiveFeed(barfeed.BaseBarFeed):
                 ret = eventData
             else:
                 logger.error("Invalid event received: %s - %s" % (eventType, eventData))
-        except Exception as e:
-            logger.exception("Exception livebarfeed.py: {}".format(e))
+        except queue.Empty:
             pass
         return ret
