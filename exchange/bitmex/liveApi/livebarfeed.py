@@ -45,6 +45,7 @@ class liveBar(bar.BasicBar):
         super(liveBar, self).__init__(dt.timestamp_to_datetime(barDict["Timestamp"]), barDict["Open"], barDict["High"],
                                       barDict["Low"], barDict["Close"], barDict["Volume"], None, frequency)
 
+
     def getDateTimeLocal(self):
         return self.__DateTimeLocal
 

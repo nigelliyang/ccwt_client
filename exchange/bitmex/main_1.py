@@ -37,10 +37,11 @@ from pyalgotrade.technical import rsi
 class MyStrategy(strategy.BaseStrategy):
     def __init__(self, feed, instrument, brk):
         super(MyStrategy, self).__init__(feed, brk)
+        logger.info("========MyStrategy init=======")
         self.__rsi = rsi.RSI(feed[instrument].getCloseDataSeries(), 14)
         self.__sma_rsi = ma.SMA(self.__rsi, 15)
         self.__sma = ma.SMA(feed[instrument].getCloseDataSeries(), 2)
-        logger.info("__sma: {}, {}.".format(self.__sma, self.__sma[-1]))
+        logger.info("__sma: {}".format(self.__sma))
 
         self.__instrument = instrument
 
@@ -54,13 +55,23 @@ def run_strategy():
     logger.info("-------START-------")
     feed = LiveFeed([COIN_TYPE], Frequency.MINUTE, REQ_DELAY)
     liveBroker = LiveBroker(COIN_TYPE, BitmexClient(COIN_TYPE))
-    from exchange.bitmex.api_keys import API_KEY, API_SECRET
-    _bitmex = Bitmex()
-    _symbol = "XBTZ18"
-    frequency = bar.Frequency.MINUTE
-    _bitmex.apiKey = API_KEY
-    _bitmex.secret = API_SECRET
-    # res = _bitmex.fetch_ticker(_symbol, params={"binSize": '5m', 'count': '100'})
+    myStrategy = MyStrategy(feed, COIN_TYPE, liveBroker)
+    myStrategy.run()
+
+
+
+
+
+    # feed = LiveFeed([COIN_TYPE], Frequency.MINUTE, REQ_DELAY)
+    # liveBroker = LiveBroker(COIN_TYPE, BitmexClient(COIN_TYPE))
+    # from exchange.bitmex.api_keys import API_KEY, API_SECRET
+    # _symbol = "btcusdt"
+    # _bitmex = BitmexClient(_symbol)
+    #
+    # frequency = bar.Frequency.MINUTE
+    # _bitmex.apiKey = API_KEY
+    # _bitmex.secret = API_SECRET
+    # res = _bitmex.get_ticker(_symbol, params={"binSize": '5m', 'count': '100'})
     # print('res is len: {}'.format(res[0]))
     # feed = []
     # for row in res:
@@ -73,9 +84,9 @@ def run_strategy():
     #             )
     #     except:
     #         pass
-
-    myStrategy = MyStrategy(feed, _symbol, liveBroker)
-    myStrategy.run()
+    #
+    # myStrategy = MyStrategy(feed, COIN_TYPE, liveBroker)
+    # myStrategy.run()
 
 
 if __name__ == '__main__':

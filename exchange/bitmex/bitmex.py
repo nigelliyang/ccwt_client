@@ -212,9 +212,10 @@ class Bitmex (Exchange):
 
     def fetch_balance(self, params={}):
         """获取账户余额"""
+        self.logger.info("bitmex fetch balance...")
         self.load_markets()
         response = self.privateGetUserMargin({'currency': 'ALL'})  # {'currency': 'all'}
-        self.logger.info("\n========response: {}=========\n".format(response))
+        # self.logger.info("\n========response: {}=========\n".format(response))
         result = {'info': response}
         for b in range(0, len(response)):
             balance = response[b]
@@ -303,6 +304,7 @@ class Bitmex (Exchange):
 
     def fetch_ticker(self, symbol, params={}):
         """获取ticker数据"""
+        self.logger.info("bitmex fetch ticker...")
         self.load_markets()
         market = self.market(symbol)
         if not market['active']:
@@ -598,7 +600,7 @@ class Bitmex (Exchange):
                 'api-key': self.apiKey,
                 'api-signature': self.hmac(self.encode(auth), self.encode(self.secret)),
             }
-            self.logger.info("\n====headers: {}====\n".format(headers))
+            # self.logger.info("\n====headers: {}====\n".format(headers))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
 
@@ -606,7 +608,7 @@ if __name__ == '__main__':
     aa = Bitmex()
     aa.apiKey = API_KEY
     aa.secret = API_SECRET
-    # res = aa.fetch_balance()
+    res = aa.fetch_balance()
     # res = aa.fetch_open_orders("XBTZ18")
     # res = aa.fetch_ohlcv("XBTZ18")
     # res = aa.fetch_time()

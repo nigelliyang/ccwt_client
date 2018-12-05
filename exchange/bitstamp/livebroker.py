@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # PyAlgoTrade
 #
-# Copyright 2011-2015 Gabriel Martin Becedillas Ruiz
+# Copyright 2011-2018 Gabriel Martin Becedillas Ruiz
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,28 +17,15 @@
 """
 .. moduleauthor:: Gabriel Martin Becedillas Ruiz <gabriel.becedillas@gmail.com>
 """
-import queue
+
 import threading
 import time
 
-# from exchange.bitmex.liveApi import liveLogger
-import pyalgotrade.logger as log
+from six.moves import queue
+
 from pyalgotrade import broker
-# from exchange.bitmex.liveApi import broker
+from pyalgotrade.bitstamp import httpclient
 from pyalgotrade.bitstamp import common
-
-from exchange.bitmex.liveApi import liveUtils
-
-# logger = liveLogger.getLiveLogger("Broker")
-logger = log.getLogger("Broker")
-
-
-class BTCTraits(broker.InstrumentTraits):
-    def roundQuantity(self, quantity):
-        return round(quantity, 4)
-
-
-common.BTCTraits = BTCTraits
 
 
 def build_order_from_open_order(openOrder, instrumentTraits):
@@ -58,56 +43,37 @@ def build_order_from_open_order(openOrder, instrumentTraits):
 
 
 class TradeMonitor(threading.Thread):
-    POLL_FREQUENCY = 3
+    POLL_FREQUENCY = 2
 
     # Events
     ON_USER_TRADE = 1
-    # Events Order
-    ORDER_DEL = 1
-    ORDER_ADD = 2
 
     def __init__(self, httpClient):
         super(TradeMonitor, self).__init__()
+        self.__lastTradeId = -1
         self.__httpClient = httpClient
         self.__queue = queue.Queue()
-        self.__queueOrder = queue.Queue()
-        self.__ordersId = []
         self.__stop = False
-        logger.info("POLL_FREQUENCY is %d" % TradeMonitor.POLL_FREQUENCY)
-        logger.info("common.btc_symbol:%s" % common.btc_symbol)
 
-    def __wait(self):
-        sleepTime = 0
-        while not self.__stop and sleepTime < TradeMonitor.POLL_FREQUENCY:
-            time.sleep(1)
-            sleepTime += 1
-
-    def __syncOrderId(self):
-        try:
-            while not self.__queueOrder.empty():
-                event, oid = self.__queueOrder.get_nowait()
-                if event == TradeMonitor.ORDER_ADD:
-                    self.__ordersId.append(oid)
-                else:
-                    self.__ordersId.remove(oid)
-        except:
-            pass
-
-    def addOrderIdSafety(self, oid):
-        self.__queueOrder.put((TradeMonitor.ORDER_ADD, oid))
-
-    def delOrderIdSafety(self, oid):
-        self.__queueOrder.put((TradeMonitor.ORDER_DEL, oid))
-
-    @liveUtils.tryForever
     def _getNewTrades(self):
-        self.__syncOrderId()
-        return self.__httpClient.getUserTransactions(self.__ordersId)
+        userTrades = self.__httpClient.getUserTransactions(httpclient.HTTPClient.UserTransactionType.MARKET_TRADE)
+
+        # Get the new trades only.
+        ret = [t for t in userTrades if t.getId() > self.__lastTradeId]
+
+        # Sort by id, so older trades first.
+        return sorted(ret, key=lambda t: t.getId())
 
     def getQueue(self):
         return self.__queue
 
     def start(self):
+        trades = self._getNewTrades()
+        # Store the last trade id since we'll start processing new ones only.
+        if len(trades):
+            self.__lastTradeId = trades[-1].getId()
+            common.logger.info("Last trade found: %d" % (self.__lastTradeId))
+
         super(TradeMonitor, self).start()
 
     def run(self):
@@ -115,11 +81,13 @@ class TradeMonitor(threading.Thread):
             try:
                 trades = self._getNewTrades()
                 if len(trades):
-                    logger.info("%d new trade/s found" % (len(trades)))
+                    self.__lastTradeId = trades[-1].getId()
+                    common.logger.info("%d new trade/s found" % (len(trades)))
                     self.__queue.put((TradeMonitor.ON_USER_TRADE, trades))
             except Exception as e:
-                logger.critical("Error retrieving user transactions", exc_info=e)
-            self.__wait()
+                common.logger.critical("Error retrieving user transactions", exc_info=e)
+
+            time.sleep(TradeMonitor.POLL_FREQUENCY)
 
     def stop(self):
         self.__stop = True
@@ -151,100 +119,81 @@ class LiveBroker(broker.Broker):
           * Sell limit order
     """
 
-    QUEUE_TIMEOUT = 3
+    QUEUE_TIMEOUT = 0.01
 
-    def __init__(self, instrument, TradeClient):
+    def __init__(self, clientId, key, secret):
         super(LiveBroker, self).__init__()
-        self.__symbol = instrument
-        common.btc_symbol = instrument
         self.__stop = False
-        self.__httpClient = TradeClient
+        self.__httpClient = self.buildHTTPClient(clientId, key, secret)
         self.__tradeMonitor = TradeMonitor(self.__httpClient)
         self.__cash = 0
         self.__shares = {}
         self.__activeOrders = {}
 
     def _registerOrder(self, order):
-        assert (order.getId() not in self.__activeOrders)
-        assert (order.getId() is not None)
+        assert(order.getId() not in self.__activeOrders)
+        assert(order.getId() is not None)
         self.__activeOrders[order.getId()] = order
-        self.__tradeMonitor.addOrderIdSafety(order.getId())
 
     def _unregisterOrder(self, order):
-        assert (order.getId() in self.__activeOrders)
-        assert (order.getId() is not None)
+        assert(order.getId() in self.__activeOrders)
+        assert(order.getId() is not None)
         del self.__activeOrders[order.getId()]
-        self.__tradeMonitor.delOrderIdSafety(order.getId())
 
-    @liveUtils.tryForever
+    # Factory method for testing purposes.
+    def buildHTTPClient(self, clientId, key, secret):
+        return httpclient.HTTPClient(clientId, key, secret)
+
     def refreshAccountBalance(self):
         """Refreshes cash and BTC balance."""
 
         self.__stop = True  # Stop running in case of errors.
-        logger.info("Retrieving account balance.")
+        common.logger.info("Retrieving account balance.")
         balance = self.__httpClient.getAccountBalance()
 
         # Cash
         self.__cash = round(balance.getUSDAvailable(), 2)
-        logger.info("%s USD" % (self.__cash))
+        common.logger.info("%s USD" % (self.__cash))
         # BTC
         btc = balance.getBTCAvailable()
         if btc:
             self.__shares = {common.btc_symbol: btc}
         else:
             self.__shares = {}
-        logger.info("%s BTC" % (btc))
+        common.logger.info("%s BTC" % (btc))
 
         self.__stop = False  # No errors. Keep running.
 
-    @liveUtils.tryForever
     def refreshOpenOrders(self):
         self.__stop = True  # Stop running in case of errors.
-        logger.info("Retrieving open orders.")
+        common.logger.info("Retrieving open orders.")
         openOrders = self.__httpClient.getOpenOrders()
         for openOrder in openOrders:
             self._registerOrder(build_order_from_open_order(openOrder, self.getInstrumentTraits(common.btc_symbol)))
 
-        logger.info("%d open order/s found" % (len(openOrders)))
+        common.logger.info("%d open order/s found" % (len(openOrders)))
         self.__stop = False  # No errors. Keep running.
 
     def _startTradeMonitor(self):
         self.__stop = True  # Stop running in case of errors.
-        logger.info("Initializing trade monitor.")
+        common.logger.info("Initializing trade monitor.")
         self.__tradeMonitor.start()
         self.__stop = False  # No errors. Keep running.
 
     def _onUserTrades(self, trades):
-        ret = False
         for trade in trades:
             order = self.__activeOrders.get(trade.getOrderId())
             if order is not None:
-                filled = order.getFilled()
-                avgPrice = order.getAvgFillPrice()
-                newQuantity = trade.getBTC() - filled
-                if order.isBuy():
-                    newQuantity -= trade.getFee()
-                newQuantity = liveUtils.CoinRound(newQuantity)
-                if newQuantity == 0:
-                    continue
-                ret = True
-                newFillPrice = trade.getBTCUSD()
-                if avgPrice is not None:
-                    newFillPrice = (newFillPrice * trade.getBTC() - order.getFilled() * avgPrice) / newQuantity
-                newFee = trade.getFee() - order.getCommissions()
-                newDateTime = trade.getDateTime()
-
-                logger.info(
-                    'newTrade: price:%f btc:%f fee:%s time:%s' % (newFillPrice, newQuantity, newFee, newDateTime))
+                fee = trade.getFee()
+                fillPrice = trade.getBTCUSD()
+                btcAmount = trade.getBTC()
+                dateTime = trade.getDateTime()
 
                 # Update cash and shares.
                 self.refreshAccountBalance()
                 # Update the order.
-                orderExecutionInfo = broker.OrderExecutionInfo(newFillPrice, abs(newQuantity), newFee, newDateTime)
+                orderExecutionInfo = broker.OrderExecutionInfo(fillPrice, abs(btcAmount), fee, dateTime)
                 order.addExecutionInfo(orderExecutionInfo)
-                if trade.isFilled():
-                    order.setState(order.State.FILLED)
-                #                order.updateExecutionInfo(orderExecutionInfo)
                 if not order.isActive():
                     self._unregisterOrder(order)
                 # Notify that the order was updated.
@@ -254,20 +203,18 @@ class LiveBroker(broker.Broker):
                     eventType = broker.OrderEvent.Type.PARTIALLY_FILLED
                 self.notifyOrderEvent(broker.OrderEvent(order, eventType, orderExecutionInfo))
             else:
-                logger.info("Trade refered to order %d that is not active" % (trade.getOrderId()))
-        return ret
+                common.logger.info("Trade %d refered to order %d that is not active" % (trade.getId(), trade.getOrderId()))
 
     # BEGIN observer.Subject interface
     def start(self):
         super(LiveBroker, self).start()
-        logger.info("livebroker start...")
         self.refreshAccountBalance()
         self.refreshOpenOrders()
         self._startTradeMonitor()
 
     def stop(self):
         self.__stop = True
-        logger.info("Shutting down trade monitor.")
+        common.logger.info("Shutting down trade monitor.")
         self.__tradeMonitor.stop()
 
     def join(self):
@@ -279,7 +226,7 @@ class LiveBroker(broker.Broker):
 
     def dispatch(self):
         # Switch orders from SUBMITTED to ACCEPTED.
-        ordersToProcess = self.__activeOrders.values()
+        ordersToProcess = list(self.__activeOrders.values())
         for order in ordersToProcess:
             if order.isSubmitted():
                 order.switchState(broker.Order.State.ACCEPTED)
@@ -290,9 +237,9 @@ class LiveBroker(broker.Broker):
             eventType, eventData = self.__tradeMonitor.getQueue().get(True, LiveBroker.QUEUE_TIMEOUT)
 
             if eventType == TradeMonitor.ON_USER_TRADE:
-                return self._onUserTrades(eventData)
+                self._onUserTrades(eventData)
             else:
-                logger.error("Invalid event received to dispatch: %s - %s" % (eventType, eventData))
+                common.logger.error("Invalid event received to dispatch: %s - %s" % (eventType, eventData))
         except queue.Empty:
             pass
 
@@ -317,9 +264,8 @@ class LiveBroker(broker.Broker):
         return self.__shares
 
     def getActiveOrders(self, instrument=None):
-        return self.__activeOrders.values()
+        return list(self.__activeOrders.values())
 
-    @liveUtils.tryForever
     def submitOrder(self, order):
         if order.isInitial():
             # Override user settings based on Bitstamp limitations.
@@ -366,7 +312,6 @@ class LiveBroker(broker.Broker):
     def createStopLimitOrder(self, action, instrument, stopPrice, limitPrice, quantity):
         raise Exception("Stop limit orders are not supported")
 
-    @liveUtils.tryForever
     def cancelOrder(self, order):
         activeOrder = self.__activeOrders.get(order.getId())
         if activeOrder is None:
