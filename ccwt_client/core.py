@@ -106,6 +106,29 @@ class CcwtClient(object):
         response = self.__request('/', params=kwargs)
         return response
 
+    def future_index(self, **kwargs):
+        response = self.__request('future/index', params=kwargs)
+        return response
+
+    def future_kline_or_ticker(self, **kwargs):
+        response = self.__request('future/kline_ticker', params=kwargs)
+        return response
+
+    def future_week_kline_ticker(self, **kwargs):
+        response = self.__request('future/week/kline_ticker', params=kwargs)
+        return response
+
+    def future_next_week_kline_ticker(self, **kwargs):
+        response = self.__request('future/next_week/kline_ticker', params=kwargs)
+        return response
+
+    def future_quarter_kline_ticker(self, **kwargs):
+        response = self.__request('future/quarter/kline_ticker', params=kwargs)
+        return response
+
+
+
+
 cli = CcwtClient()
 
 if __name__ == '__main__':

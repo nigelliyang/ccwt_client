@@ -68,6 +68,52 @@ class Database(dbfeed.Database):
         log.debug("=========_tmp top 3: {}============".format(_tmp[:3]))
         return ret
 
+    def getBarsFuture(self, instrument, frequency, types, test_back=True, timezone='', start_date='', end_data=''):
+        """  frequency 为 bar.Frequency.SECOND时获取ticker数据，其他的获取kline数据；
+        :param types: 期货数据类型
+        :param instrument: exchange_symbol
+        :param frequency: 频率
+        :param timezone:
+        :param start_date:
+        :param end_data:
+        :return:
+        """
+        period, ticker_flag = self.get_frequency_info(frequency)
+        volume = 'base_volume' if ticker_flag else 'volume'
+        limit = 1000 if test_back else ''
+        # client获取数据
+        col = get_data_future_info(instrument, frequency, types, start_date, end_data, limit)
+
+        _tmp = []
+        ret = []
+        map = {}
+        for row in col:
+
+            # _time_stamp = row.get('time_stamp', '') or row.get('timestamp', '')
+            # log.info("==========_time_stamp: {}==========".format(_time_stamp))
+            # dateTime, strDateTime = self.get_time_stamp_info(_time_stamp, timezone)
+
+            # log.info('dateTime: {}, strDateTime: {}'.format(dateTime, strDateTime))
+            str_date_time = row.get('sys_time')
+            date_time = datetime.datetime.strptime(str_date_time, '%Y-%m-%d %H:%M:%S')
+            try:
+                if str_date_time not in map:
+                    # print("open: {}, preclose: {}".format(row.get('open', 0), row.get('preclose', 0)))
+                    ret.append(
+                        bar.BasicBar(date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
+                                     row.get('close', 0), row[volume], None, frequency))
+                    map[str_date_time] = '1'
+                    _tmp.append(
+                            [date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
+                             row.get('close', 0), row[volume], None, frequency])
+            except Exception as e:
+                log.warning("异常: {}".format(e))
+                pass
+
+        log.debug("======ret is len: {}======".format(len(ret)))
+        log.debug("=========_tmp top 3: {}============".format(_tmp[:3]))
+        return ret
+
     def get_time_stamp_info(self, time_stamp, timezone=''):
         """ time_stamp转换为datetime
         :param time_stamp:
@@ -150,6 +196,45 @@ def get_data_info(instrument, period='', ticker_flag=False, start_date='', end_d
     else:
         raise NotImplementedError()
 
+def get_data_future_info(instrument, period='', ticker_flag=False, start_date='', end_date='', limit='', **kwargs):
+    """ 获取kline/ticker数据
+    :param end_date: 截止日期
+    :param start_date: 开始日期
+    :param instrument: exchange_symbol
+    :param period: kline
+    :param ticker_flag: ticker
+    :param kwargs:
+    :return:
+    """
+
+    param = {
+        'exchange': instrument.split('_')[0], 'symbol': instrument.split('_')[-1],
+        # 'start_date': start_date, 'end_date': end_date, 'limit': limit
+    }
+    if limit:
+        param['limit'] = limit
+    else:
+        param['start_date'] = start_date
+        param['end_date'] = end_date
+
+    if period:
+        _method = 'kline'
+        param['time_frame'] = period
+        res = cli.kline(**param)
+    elif ticker_flag:
+        _method = 'ticker'
+        res = cli.ticker(**param)
+    else:
+        raise NotImplementedError()
+
+    if res and isinstance(res, list):
+        _keys = [k for k in res[0].keys() if _method in k]
+        datas = res[0].get(_keys[0])
+        # log.info('Get data info is top 3: {}'.format(datas[:3]))
+        return datas
+    else:
+        raise NotImplementedError()
+
 
 class Feed(membf.BarFeed):
     def __init__(self, frequency, dbConfig=None, maxLen=None):
@@ -175,7 +260,26 @@ class Feed(membf.BarFeed):
         bars = self.db.getBars(instrument, self.getFrequency(), test_back,  timezone, start_date, end_date)
         self.addBarsFromSequence(instrument, bars)
 
+    def loadBarsFuture(self, instrument, test_back, types, timezone='', start_date='', end_date='', ):
+        """  获取交易所期货ticker/kline数据
+        :param types: 获取期货那类数据，ticker, kline, this_week_kline, next_week_kline, next_week_kline,
+                        next_weeb_ticker, quarter_kline, quarter_ticker
+        :param instrument:
+        :param test_back: 回测标识，True: 表示回测，默认返回1000条数据， False: 获取时间段区间数据
+        :param timezone: 时区
+        :param start_date: 开始日期 与系统时间相比，不与交易所时间比较
+        :param end_date: 截止日期 与系统时间相比，不与交易所时间比较
+        :return:
+        """
+        if not test_back:
+            if not start_date and not end_date:
+                raise NotImplementedError('test_back is False, start_date and end_date not is empty!')
+        # log.info("instrument: {}.".format(instrument))
+        bars = self.db.getBarsFuture(instrument, self.getFrequency(), test_back, types,  timezone, start_date, end_date)
+        self.addBarsFromSequence(instrument, bars)
+
+
 if __name__ == '__main__':
     feed = Feed(bar.Frequency.SECOND)
-    # feed.loadBars("bitmex_LTCZ18")  # bitmex_XBTUSD  binance_ADABTC  okex_LIGHTBTC
-    feed.loadBars("okex_LIGHTBTC", test_back=True)  # bitmex_XBTUSD  binance_ADABTC  okex_LIGHTBTC
+    # feed.loadBars("bitmex_LTCZ18", True)  # bitmex_XBTUSD  binance_ADABTC  okex_LIGHTBTC
+    feed.loadBarsFuture("ltc", True, 'this_weeb_kline')  # bitmex_XBTUSD  binance_ADABTC  okex_LIGHTBTC

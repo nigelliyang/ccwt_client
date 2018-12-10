@@ -8,8 +8,8 @@ from ws4py.client.threadedclient import WebSocketClient
 
 class CG_Client(WebSocketClient):
     def opened(self):
-        # req = '{"event":"subscribe", "channel":"eth_usdt.deep"}'
-        # self.send(req)
+        req = '~m~66~m~{"m":"depth_set_symbol","p":["ds_CdR5HlOGgka1","BITFINEX:BTCUSD"]}'
+        self.send(req)
         pass
 
     def closed(self, code, reason=None):
