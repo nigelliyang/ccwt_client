@@ -28,8 +28,9 @@ class MyStrategy(strategy.BacktestingStrategy):
 if __name__ == '__main__':
     # 获得回测数据
     feed = Feed(Frequency.SECOND)
-    feed.loadBars('bitmex_BCHZ18', test_back=True)
+    # feed.loadBars('bitmex_BCHZ18', test_back=True)
+    feed.loadBarsFuture('okex_ltc', 'this_week_ticker', test_back=True)
 
     # 把策略跑起来
-    myStrategy = MyStrategy(feed, "bitmex_BCHZ18")
+    myStrategy = MyStrategy(feed, "okex_ltc")
     myStrategy.run()
