@@ -120,6 +120,50 @@ class Database(dbfeed.Database):
         log.debug("=========_tmp top 3: {}============".format(_tmp[:3]))
         return ret
 
+    def getBarsFutureIndex(self, instrument, frequency, types, test_back=True, timezone='', start_date='', end_data=''):
+        """  frequency 为 bar.Frequency.SECOND时获取ticker数据，其他的获取kline数据；
+        :param types: 获取期货那类数据，index
+        :param instrument: exchange_symbol
+        :param frequency: 频率
+        :param timezone:
+        :param start_date:
+        :param end_data:
+        :return:
+        """
+        # period, ticker_flag = self.get_frequency_info(frequency)
+        # volume = 'base_volume' if ticker_flag else 'volume'
+        limit = 1000 if test_back else ''
+        # client获取数据
+        col = get_data_future_index_info(instrument, types, start_date, end_data, limit)
+
+        _tmp = []
+        ret = []
+        map = {}
+        for row in col:
+
+            # _time_stamp = row.get('time_stamp', '') or row.get('timestamp', '')
+            # log.info("==========_time_stamp: {}==========".format(_time_stamp))
+            # dateTime, strDateTime = self.get_time_stamp_info(_time_stamp, timezone)
+            #
+            # log.info('dateTime: {}, strDateTime: {}'.format(dateTime, strDateTime))
+            str_date_time = row.get('sys_time')
+            date_time = datetime.datetime.strptime(str_date_time, '%Y-%m-%d %H:%M:%S')
+            try:
+                if str_date_time not in map:
+                    # print("open: {}, preclose: {}".format(row.get('open', 0), row.get('preclose', 0)))
+                    ret.append(
+                        bar.BasicBar(date_time, 0, 0, 0, row.get('index', 0), 0, None, frequency))
+                    map[str_date_time] = '1'
+                    _tmp.append(
+                        [date_time, date_time, 0, 0, 0, row.get('index', 0), 0, None, frequency])
+            except Exception as e:
+                log.warning("异常: {}".format(e))
+                pass
+
+        log.debug("======ret is len: {}======".format(len(ret)))
+        log.debug("=========_tmp top 3: {}============".format(_tmp[:3]))
+        return ret
+
     def get_time_stamp_info(self, time_stamp, timezone=''):
         """ time_stamp转换为datetime
         :param time_stamp:
@@ -260,6 +304,31 @@ def get_data_future_info(instrument, types, period='', ticker_flag=False, start_
         raise NotImplementedError()
 
 
+def get_data_future_index_info(instrument, types, start_date='', end_date='', limit='', **kwargs):
+    """ 获取期货index数据
+    :param types: 获取期货那类数据，获取期货那类数据，index
+    :param end_date: 截止日期
+    :param start_date: 开始日期
+    :param instrument: exchange_symbol
+    :param kwargs:
+    :return:
+    """
+    param = {
+        'exchange': instrument.split('_')[0], 'symbol': instrument.split('_')[-1],
+        # 'start_date': start_date, 'end_date': end_date, 'limit': limit
+    }
+    res = cli.future_index(**param)
+
+    log.info("获取期货指数数据: {}".format(res[:3]))
+    if res and isinstance(res, list):
+        _keys = [k for k in res[0].keys()]
+        log.info("获取期货数据列表中字典的key: {}".format(_keys))
+        datas = res[0].get(_keys[0])
+        return datas
+    else:
+        raise NotImplementedError()
+
+
 class Feed(membf.BarFeed):
     def __init__(self, frequency, dbConfig=None, maxLen=None):
         super(Feed, self).__init__(frequency, maxLen)
@@ -268,7 +337,7 @@ class Feed(membf.BarFeed):
     def barsHaveAdjClose(self):
         return False
 
-    def loadBars(self, instrument,  test_back, types='', timezone='', start_date='', end_date=''):
+    def loadBars(self, instrument, test_back, types='', timezone='', start_date='', end_date=''):
         """  获取交易所ticker/kline数据
         :param instrument:
         :param test_back: 回测标识，True: 表示回测，默认返回1000条数据， False: 获取时间段区间数据
@@ -287,7 +356,7 @@ class Feed(membf.BarFeed):
         else:
             self.loadBarsFuture(instrument, types, test_back, timezone, start_date, end_date)
 
-    def loadBarsFuture(self, instrument, types, test_back,  timezone='', start_date='', end_date='', ):
+    def loadBarsFuture(self, instrument, types, test_back, timezone='', start_date='', end_date='', ):
         """  获取交易所期货ticker/kline数据
         :param types: 获取期货那类数据，ticker, kline, this_week_kline, this_week_ticker,
                 next_week_kline, next_week_ticker, quarter_kline, quarter_ticker
@@ -302,11 +371,29 @@ class Feed(membf.BarFeed):
             if not start_date and not end_date:
                 raise NotImplementedError('test_back is False, start_date and end_date not is empty!')
         # log.info("instrument: {}.".format(instrument))
-        bars = self.db.getBarsFuture(instrument, self.getFrequency(), types, test_back,  timezone, start_date, end_date)
+        bars = self.db.getBarsFuture(instrument, self.getFrequency(), types, test_back, timezone, start_date, end_date)
+        self.addBarsFromSequence(instrument, bars)
+
+    def loadBarsFutureIndex(self, instrument, test_back, types='index', timezone='', start_date='', end_date='', ):
+        """  获取交易所期货ticker/kline数据
+        :param types: 获取期货那类数据，index
+        :param instrument: exchange_symbol
+        :param test_back: 回测标识，True: 表示回测，默认返回1000条数据， False: 获取时间段区间数据
+        :param timezone: 时区
+        :param start_date: 开始日期 与系统时间相比，不与交易所时间比较
+        :param end_date: 截止日期 与系统时间相比，不与交易所时间比较
+        :return:
+        """
+        if not test_back:
+            if not start_date and not end_date:
+                raise NotImplementedError('test_back is False, start_date and end_date not is empty!')
+        # log.info("instrument: {}.".format(instrument))
+        bars = self.db.getBarsFutureIndex(instrument, self.getFrequency(), types, test_back, timezone, start_date,
+                                          end_date)
         self.addBarsFromSequence(instrument, bars)
 
 
 if __name__ == '__main__':
     feed = Feed(bar.Frequency.SECOND)
     # feed.loadBars("bitmex_LTCZ18", True)  # bitmex_XBTUSD  binance_ADABTC  okex_LIGHTBTC
-    feed.loadBarsFuture("okex_ltc", 'this_week_ticker', True)
+    feed.loadBarsFutureIndex("okex_ltc",  True, types='index')
