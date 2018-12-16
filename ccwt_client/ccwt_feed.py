@@ -105,13 +105,13 @@ class Database(dbfeed.Database):
                 if str_date_time not in map:
                     # print("open: {}, preclose: {}".format(row.get('open', 0), row.get('preclose', 0)))
                     ret.append(
-                        bar.BasicBar(date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0),
-                                     row.get('low', 0),
-                                     row.get('close', 0), row[volume], None, frequency))
+                        bar.BasicBar(date_time, row.get('open', 0) or row.get('colse', 0) or row.get('close', 0),
+                                     row.get('high', 0), row.get('low', 0),
+                                     row.get('colse', 0) or row.get('close', 0), row[volume], None, frequency))
                     map[str_date_time] = '1'
                     _tmp.append(
-                        [date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
-                         row.get('close', 0), row[volume], None, frequency])
+                        [date_time, row.get('open', 0) or row.get('colse', 0) or row.get('close', 0), row.get('high', 0),
+                         float(row.get('low', 0)), row.get('colse', 0) or row.get('close', 0), row[volume], None, frequency])
             except Exception as e:
                 log.warning("异常: {}".format(e))
                 pass
@@ -150,12 +150,12 @@ class Database(dbfeed.Database):
             date_time = datetime.datetime.strptime(str_date_time, '%Y-%m-%d %H:%M:%S')
             try:
                 if str_date_time not in map:
-                    # print("open: {}, preclose: {}".format(row.get('open', 0), row.get('preclose', 0)))
+                    _close = row.get('index', 0) or row.get('close', 0)
                     ret.append(
-                        bar.BasicBar(date_time, 0, 0, 0, row.get('index', 0), 0, None, frequency))
+                        bar.BasicBar(date_time, _close, _close, _close, _close, _close, None, frequency))
                     map[str_date_time] = '1'
                     _tmp.append(
-                        [date_time, date_time, 0, 0, 0, row.get('index', 0), 0, None, frequency])
+                        [date_time, date_time, _close,_close,_close,_close,_close, None, frequency])
             except Exception as e:
                 log.warning("异常: {}".format(e))
                 pass
@@ -396,4 +396,5 @@ class Feed(membf.BarFeed):
 if __name__ == '__main__':
     feed = Feed(bar.Frequency.SECOND)
     # feed.loadBars("bitmex_LTCZ18", True)  # bitmex_XBTUSD  binance_ADABTC  okex_LIGHTBTC
-    feed.loadBarsFutureIndex("okex_ltc",  True, types='index')
+    # feed.loadBarsFutureIndex("okex_ltc",  True, types='index')
+    feed.loadBarsFuture("okex_ltc", 'this_week_ticker', test_back=True)

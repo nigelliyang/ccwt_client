@@ -16,7 +16,7 @@ class MyStrategy(strategy.BacktestingStrategy):
         self.__rsi = rsi.RSI(feed[instrument].getCloseDataSeries(), 14)
         self.__sma_rsi = ma.SMA(self.__rsi, 15)
         self.__sma = ma.SMA(feed[instrument].getCloseDataSeries(), 2)
-        self.info("__sma: {}, {}.".format(self.__sma, self.__sma[-1]))
+        # self.info("__sma: {}, {}.".format(self.__sma, self.__sma[-1]))
 
         self.__instrument = instrument
 
@@ -30,6 +30,7 @@ if __name__ == '__main__':
     feed = Feed(Frequency.SECOND)
     # feed.loadBars('bitmex_BCHZ18', test_back=True)
     feed.loadBarsFuture('okex_ltc', 'this_week_ticker', test_back=True)
+    feed.loadBarsFutureIndex('okex_ltc', test_back=True, types='index')
 
     # 把策略跑起来
     myStrategy = MyStrategy(feed, "okex_ltc")
