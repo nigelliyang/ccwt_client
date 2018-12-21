@@ -27,8 +27,12 @@ def socket_conn():
                        "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
                        ])
     while 1:
+
         if ws.connected:
             # 接收实时数据，并打印出来
+            ws.send('~m~55~m~{"m":"chart_create_session","p":["cs_kllUhspHvjaI",""]}')
+            ws.send('~m~75~m~{"m":"create_series","p":["cs_kllUhspHvjaI","s1","s1","symbol_1","45",300]}')
+            ws.send('~m~57~m~{"m":"request_more_data","p":["cs_kllUhspHvjaI","s1",27]}')
             try:
                 print(ws.recv())
                 # print(ws.next())
