@@ -15,7 +15,7 @@ log = logger.getLogger("core")
 class CcwtClient(object):
     _session = None
     __DEFAULT_BASE_URL = 'http://210.146.174.64:8003/api/'
-    __DEFAULT_TIMEOUT = 30
+    __DEFAULT_TIMEOUT = 90
     __TEMPDIR_CACHE = True
 
     def __init__(self, base_url=__DEFAULT_BASE_URL, request_timeout=__DEFAULT_TIMEOUT, tempdir_cache=__TEMPDIR_CACHE):
@@ -30,7 +30,7 @@ class CcwtClient(object):
         if not self._session:
             self._session = requests_cache.core.CachedSession(
                 cache_name=self.cache_name, backend='sqlite',
-                expire_after=60*5)
+                expire_after=60*10)
 
             self._session.headers.update({'Content-Type': 'application/json'})
             self._session.headers.update(
