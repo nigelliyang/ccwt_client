@@ -24,6 +24,10 @@ class Database(dbfeed.Database):
     def __init__(self):
         pass
 
+    def date_compare(self, frequency, date_time):
+        pass
+
+
     def getBars(self, instrument, frequency, test_back=True, timezone='', start_date='', end_data=''):
         """  frequency 为 bar.Frequency.SECOND时获取ticker数据，其他的获取kline数据；
         :param instrument: exchange_symbol
@@ -43,21 +47,22 @@ class Database(dbfeed.Database):
         ret = []
         map = {}
         for row in col:
-
             # _time_stamp = row.get('time_stamp', '') or row.get('timestamp', '')
-            # log.info("==========_time_stamp: {}==========".format(_time_stamp))
             # dateTime, strDateTime = self.get_time_stamp_info(_time_stamp, timezone)
-
-            # log.info('dateTime: {}, strDateTime: {}'.format(dateTime, strDateTime))
             str_date_time = row.get('sys_time')
             date_time = datetime.datetime.strptime(str_date_time, '%Y-%m-%d %H:%M:%S')
+            _bars = [date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0),
+                     row.get('low', 0), row.get('close', 0), row[volume], None, frequency]
+
+            # 每遍历一次bar数据时，保留当前数据及时间；
+            _bars_tmp = _bars  # bars临时数据，为了填充下一时刻没有数据的情况
+            _bars_time = date_time  # bars的时间，未了与下一个bar的时间进行比较，查看是否缺少数据，
+
             try:
                 if str_date_time not in map:
-                    # print("open: {}, preclose: {}".format(row.get('open', 0), row.get('preclose', 0)))
                     ret.append(
-                        bar.BasicBar(date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0),
-                                     row.get('low', 0),
-                                     row.get('close', 0), row[volume], None, frequency))
+                        bar.BasicBar(_bars[0], _bars[1], _bars[2],_bars[3],_bars[4],_bars[5],_bars[6],_bars[7])
+                    )
                     map[str_date_time] = '1'
                     _tmp.append(
                         [date_time, row.get('open', 0) or row.get('preclose', 0), row.get('high', 0), row.get('low', 0),
