@@ -53,12 +53,12 @@ class MyStrategy(strategy.BacktestingStrategy):
 if __name__ == '__main__':
     # 获得回测数据
     feed = Feed(Frequency.SECOND)
-    # feed.loadBars('okex_LIGHTUSDT', test_back=True)
+    feed.loadBars('okex_LIGHTUSDT', test_back=True)
     # feed.loadBars('bitmex_LTCZ18', test_back=True)
-    feed.loadBarsFuture('okex_ltc', 'quarter_ticker',  test_back=True)
+    # feed.loadBarsFuture('okex_ltc', 'quarter_ticker',  test_back=True)
 
     # 把策略跑起来
-    # myStrategy = MyStrategy(feed, "okex_LIGHTUSDT")
-    myStrategy = MyStrategy(feed, "okex_ltc")
+    myStrategy = MyStrategy(feed, "okex_LIGHTUSDT")
+    # myStrategy = MyStrategy(feed, "okex_ltc")
     myStrategy.run()
     myStrategy.info("Final portfolio value: $%.10f" % myStrategy.getResult())
