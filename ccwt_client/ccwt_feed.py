@@ -286,39 +286,102 @@ class Database(dbfeed.Database):
         :param end_data:
         :return:
         """
-        # period, ticker_flag = self.get_frequency_info(frequency)
-        # volume = 'base_volume' if ticker_flag else 'volume'
+        period, ticker_flag = self.get_frequency_info(frequency)
+        volume = 'base_volume' if ticker_flag else 'volume'
         limit = 1000 if test_back else ''
         # client获取数据
         col = get_data_future_index_info(instrument, types, start_date, end_data, limit)
 
-        _tmp = []
-        ret = []
-        map = {}
+        _tmp = []  # 临时bar数据，用于查看，打日志；
+        ret = []  # bar数据
+        map = {}  # 去重处理；
 
-        for row in col:
+        if col:
+            first_di = col[0]  # 第一条bar数据
+            first_str_date_time = first_di.get('sys_time')  # 系统日期 str
+            first_date_time = datetime.datetime.strptime(first_str_date_time, '%Y-%m-%d %H:%M:%S')  # 转换为日期格式
 
-            # _time_stamp = row.get('time_stamp', '') or row.get('timestamp', '')
-            # log.info("==========_time_stamp: {}==========".format(_time_stamp))
-            # dateTime, strDateTime = self.get_time_stamp_info(_time_stamp, timezone)
-            # log.info('dateTime: {}, strDateTime: {}'.format(dateTime, strDateTime))
+            first_bars = [first_date_time,
+                          first_di.get('open', 0) or first_di.get('preclose', 0) or first_di.get('close', 0),
+                          first_di.get('high', 0), first_di.get('low', 0), first_di.get('close', 0),
+                          first_di.get('volume', 0), None, frequency]  # 第一条bar数据
+            map[first_str_date_time] = '1'
+            ret.append(
+                bar.BasicBar(first_bars[0], first_bars[1], first_bars[2], first_bars[3], first_bars[4], first_bars[5],
+                             first_bars[6], first_bars[7])
+            )  # 第一条bar数据加入
+            _tmp.append(first_bars)
+        else:
+            log.info("getBars获取的数据为空!!!")
+            return []
+
+        for idx, row in enumerate(col[1:]):
+            # 每遍历一次bar数据时，保留当前数据及时间；
             str_date_time = row.get('sys_time')
+            # bars的时间，为了与上一个bar的时间进行比较，查看是否缺少数据，
             date_time = datetime.datetime.strptime(str_date_time, '%Y-%m-%d %H:%M:%S')
+            # bars临时数据，为了填充上一时刻没有数据的情况
+            _bars = [date_time, row.get('open', 0) or row.get('preclose', 0) or row.get('close', 0), row.get('high', 0),
+                     row.get('low', 0), row.get('close', 0), row.get(volume, 0), None, frequency]
+
+            fill_bars = self.date_compare(frequency, first_bars, first_date_time, date_time)  # 获取需要填充的bar数据
+            try:
+                for b in fill_bars:
+                    _str_date_time = b[0].strftime('%Y-%m-%d %H:%M:%S')
+                    _date_time = b[0]
+                    if _str_date_time not in map:
+                        ret.append(
+                            bar.BasicBar(b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7])
+                        )
+                        map[_str_date_time] = '1'
+                        _tmp.append(b)
+            except:
+                pass
+
             try:
                 if str_date_time not in map:
-                    _close = row.get('index', 0) or row.get('close', 0)
                     ret.append(
-                        bar.BasicBar(date_time, _close, _close, _close, _close, _close, None, frequency))
+                        bar.BasicBar(_bars[0], _bars[1], _bars[2], _bars[3], _bars[4], _bars[5], _bars[6], _bars[7])
+                    )
                     map[str_date_time] = '1'
-                    _tmp.append(
-                        [date_time, date_time, _close,_close,_close,_close,_close, None, frequency])
+                    _tmp.append(_bars)
             except Exception as e:
                 log.warning("异常: {}".format(e))
                 pass
-
-        log.debug("======ret is len: {}======".format(len(ret)))
-        log.debug("=========_tmp top 3: {}============".format(_tmp[:3]))
+            first_bars = _bars
+            first_date_time = date_time
+        log.info("======ret is len: {}======".format(len(ret)))
+        log.info("=========_tmp top 2: {}， _tmp len: {}============".format(_tmp[:2], len(_tmp)))
+        # log.info("========map: {}========".format(map))
         return ret
+
+        # _tmp = []
+        # ret = []
+        # map = {}
+        #
+        # for row in col:
+        #
+        #     # _time_stamp = row.get('time_stamp', '') or row.get('timestamp', '')
+        #     # log.info("==========_time_stamp: {}==========".format(_time_stamp))
+        #     # dateTime, strDateTime = self.get_time_stamp_info(_time_stamp, timezone)
+        #     # log.info('dateTime: {}, strDateTime: {}'.format(dateTime, strDateTime))
+        #     str_date_time = row.get('sys_time')
+        #     date_time = datetime.datetime.strptime(str_date_time, '%Y-%m-%d %H:%M:%S')
+        #     try:
+        #         if str_date_time not in map:
+        #             _close = row.get('index', 0) or row.get('close', 0)
+        #             ret.append(
+        #                 bar.BasicBar(date_time, _close, _close, _close, _close, _close, None, frequency))
+        #             map[str_date_time] = '1'
+        #             _tmp.append(
+        #                 [date_time, date_time, _close,_close,_close,_close,_close, None, frequency])
+        #     except Exception as e:
+        #         log.warning("异常: {}".format(e))
+        #         pass
+        #
+        # log.debug("======ret is len: {}======".format(len(ret)))
+        # log.debug("=========_tmp top 3: {}============".format(_tmp[:3]))
+        # return ret
 
     def get_time_stamp_info(self, time_stamp, timezone=''):
         """ time_stamp转换为datetime
@@ -554,8 +617,8 @@ class Feed(membf.BarFeed):
 if __name__ == '__main__':
     feed = Feed(bar.Frequency.SECOND)
     # feed.loadBars("binance_ADABTC", True)  # bitmex_XBTUSD  binance_ADABTC  okex_LIGHTBTC
-    # feed.loadBarsFutureIndex("okex_ltc",  True, types='index')
-    feed.loadBarsFuture("okex_ltc", 'this_week_ticker', test_back=True)
+    feed.loadBarsFutureIndex("okex_ltc",  True)
+    # feed.loadBarsFuture("okex_ltc", 'this_week_ticker', test_back=True)
 
     # date_time = datetime.datetime.strptime('2018-12-27 00:07:23', '%Y-%m-%d %H:%M:%S')
     # date_time_1 = datetime.datetime.strptime('2018-12-27 00:10:20', '%Y-%m-%d %H:%M:%S')
