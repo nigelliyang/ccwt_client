@@ -4,6 +4,17 @@ $ pip install ccwt_client
 python setup.py sdist build
 twine upload dist/*
 
+## 1.0更新
+    修改请求默认超时时间 __DEFAULT_TIMEOUT = 90
+    future_index指数bar数据补充，根据ticker kline的频率补充，无数据则填充前一条数据
+
+## 0.9更新
+    修改请求默认超时时间 __DEFAULT_TIMEOUT = 90
+    bar数据补充，根据ticker kline的频率补充，无数据则填充前一条数据
+    
+##　０.8更新
+    feed数据增加future_ticker/future_kline, future_index, future_this_week_ticker/future_this_week_kline
+    future_next_week_tickeer/future_next_week_kline, future_quarter_ticker/future_quarter_kline
 
 #Ccwt_web:  ccwt_web接口的数据没有进行转换，直接从MongoDB读取；
 ## Host: http: //52.194.88.72:8002
@@ -510,11 +521,5 @@ twine upload dist/*
 
     [[datetime.datetime(2018, 10, 23, 8, 20, 58, 136000), 6399.85, 6423, 6369, 6396, 2155330, None, 1], [datetime.datetime(2018, 10, 23, 8, 20, 16, 103000), 6399.85, 6423, 6369, 6396.5, 2155330, None, 1], [datetime.datetime(2018, 10, 23, 7, 19, 9, 591000), 6399.85, 6423, 6369, 6401.5, 6151444, None, 1],]
 
-##　０.8更新
-    feed数据增加future_ticker/future_kline, future_index, future_this_week_ticker/future_this_week_kline
-    future_next_week_tickeer/future_next_week_kline, future_quarter_ticker/future_quarter_kline
 
-## 0.9更新
-    修改请求默认超时时间 __DEFAULT_TIMEOUT = 90
-    bar数据补充，根据ticker kline的频率补充，无数据则填充前一条数据
     
