@@ -437,7 +437,7 @@ def get_data_info(instrument, period='', ticker_flag=False, start_date='', end_d
     """
 
     param = {
-        'exchange': instrument.split('_')[0], 'symbol': instrument.split('_')[-1],
+        'exchange': instrument.split('_', 1)[0], 'symbol': instrument.split('_', 1)[-1],
         # 'start_date': start_date, 'end_date': end_date, 'limit': limit
     }
     if limit:
@@ -481,7 +481,7 @@ def get_data_future_info(instrument, types, period='', ticker_flag=False, start_
     """
     log.info("get_data_future_info param:{}, {}, {},{}".format(instrument, types, period, ticker_flag))
     param = {
-        'exchange': instrument.split('_')[0], 'symbol': instrument.split('_')[-1],
+        'exchange': instrument.split('_', 1)[0], 'symbol': instrument.split('_', 1)[-1],
         # 'start_date': start_date, 'end_date': end_date, 'limit': limit
     }
     if limit:
