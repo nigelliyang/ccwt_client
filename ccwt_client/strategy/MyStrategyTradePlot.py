@@ -61,14 +61,14 @@ if __name__ == '__main__':
     # 获得回测数据
     feed = Feed(Frequency.MINUTE)
     #feed.loadBars('okex_LIGHTUSDT')
-    # feed.loadBars('bitmex_BCHZ18')
-    feed.loadBars('binance_TRXBTC', test_back=True)
+    feed.loadBars('bitmex_XBTUSD', test_back=False, start_date='2018-12-24', end_date='2019-01-24')
+    # feed.loadBars('binance_TRXBTC', test_back=True)
 
     # 4.设置指标和绘图
     # 把策略跑起来
     #myStrategy = MyStrategy(feed, "okex_LIGHTUSDT")
     # myStrategy = MyStrategy(feed, "bitmex_BCHZ18")
-    myStrategy = MyStrategy(feed, "binance_TRXBTC")
+    myStrategy = MyStrategy(feed, "bitmex_XBTUSD")
 
     #returnsAnalyzer = returns.Returns()
     #myStrategy.attachAnalyzer(returnsAnalyzer)
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     myStrategy.attachAnalyzer(sharpe_ratio)
     plt = plotter.StrategyPlotter(myStrategy)
     # Include the SMA in the instrument's subplot to get it displayed along with the closing prices.
-    plt.getInstrumentSubplot("binance_TRXBTC").addDataSeries("SMA", myStrategy.getSMA())
+    plt.getInstrumentSubplot("bitmex_XBTUSD").addDataSeries("SMA", myStrategy.getSMA())
     # Plot the simple returns on each bar.
     #plt.getOrCreateSubplot("returns").addDataSeries("Simple returns", returnsAnalyzer.getReturns())
 

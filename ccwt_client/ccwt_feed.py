@@ -534,7 +534,7 @@ def get_data_future_index_info(instrument, types, start_date='', end_date='', li
     :return:
     """
     param = {
-        'exchange': instrument.split('_')[0], 'symbol': instrument.split('_')[-1],
+        'exchange': instrument.split('_', 1)[0], 'symbol': instrument.split('_', 1)[-1],
         # 'start_date': start_date, 'end_date': end_date, 'limit': limit
     }
     res = cli.future_index(**param)
