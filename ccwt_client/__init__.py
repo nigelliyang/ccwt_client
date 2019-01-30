@@ -5,7 +5,7 @@
 
 
 __title__ = 'ccwt_client'
-__version__ = '0.9'
+__version__ = '1.0.3'
 __author__ = 'xycfree'
 __repo__ = 'https://github.com/nigelliyang/ccwt_client'
 __license__ = 'Apache v2.0 License'
